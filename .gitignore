@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+.exe-ai/
+*.gguf
+.DS_Store
+
+# Employee task assignments (private)
+/exe/
