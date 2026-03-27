@@ -298,6 +298,8 @@ Agno is a Python framework for building and serving agents at scale. It's a fram
 
 **What we chose differently:** local-first, npm install, no server, Node.js/TypeScript, with encryption and behavioral learning built in. Agno is the right choice if you're building a Python application on top of it. exe-ai-employees is the right choice if you want a team running today.
 
+---
+
 ### exe vs OpenViking
 
 OpenViking (volcengine/OpenViking) is an open-source "context database for AI agents" by ByteDance/Volcengine. It uses a filesystem paradigm — memories, resources, and skills organized hierarchically — and a three-tier loading model (L0/L1/L2) that loads context on-demand to minimize token consumption.
