@@ -17,11 +17,41 @@ exe-ai-employees gives you a team of AI employees — each with their own role, 
 
 ---
 
+## Table of contents
+
+- [Who this is for](#who-this-is-for)
+- [Who this is NOT for](#who-this-is-not-for)
+- [Why this matters](#why-this-matters)
+- [Build your team](#build-your-team)
+- [What it does](#what-it-does)
+- [How exe compares](#how-exe-ai-employees-compares)
+- [Install](#install)
+- [Quick start (5 minutes)](#quick-start-5-minutes)
+- [How it works](#how-it-works)
+- [Encryption](#encryption)
+- [Exe Cloud](#exe-cloud--take-your-ai-employees-anywhere)
+- [Search model](#search-model)
+- [MCP tools](#mcp-tools)
+- [Architecture decisions](#architecture-decisions)
+- [Common questions](#common-questions)
+- [Requirements](#requirements)
+- [Recommended terminal](#recommended-terminal)
+- [tmux guide](#tmux--your-agent-session-manager)
+- [Commands](#commands)
+- [Exe OS — the bigger picture](#exe-os--the-bigger-picture)
+- [Development](#development)
+- [Contributing](#contributing)
+- [Community](#community)
+
+---
+
 ## Who this is for
 
 Solo founders. Indie hackers. One-person companies that need to operate like a team of ten.
 
 You don't need a zero-human company. You need to be the one human who runs everything — with AI employees that remember what they've done, learn from their mistakes, and pick up where they left off.
+
+---
 
 ## Who this is NOT for
 
@@ -33,6 +63,8 @@ You don't need a zero-human company. You need to be the one human who runs every
 If any of these describe you, exe-ai-employees probably isn't the right fit yet. We'd rather be honest now than waste your time.
 
 *Coming soon: Slack, Discord, WhatsApp, and other channel integrations — so you can coordinate with your AI employees from wherever you already communicate.*
+
+---
 
 ## Why this matters
 
@@ -67,6 +99,8 @@ A team that remembers everything, communicates efficiently, stays in their lane,
 | One AI, one conversation at a time | Multiple employees, each with a role and history |
 | Knowledge lives in your head | Knowledge lives in searchable, encrypted memory |
 
+---
+
 ## Build your team
 
 exe-ai-employees ships with a starting team designed for the most common solo founder setup:
@@ -91,6 +125,8 @@ These are defaults, not requirements. You can build any team structure your busi
 
 A SaaS founder needs different employees than a content creator. An e-commerce operator needs different roles than a consultant. The defaults get you started. The customization lets you build exactly the team you need.
 
+---
+
 ## What it does
 
 exe-ai-employees turns Claude Code into a team. You define employees — a CTO, an engineer, a marketing lead, whatever your operation needs. Each one gets:
@@ -101,11 +137,37 @@ exe-ai-employees turns Claude Code into a team. You define employees — a CTO, 
 - **Behavioral learning** — when you correct an employee, they store the correction as a persistent rule. Next session, it's automatically applied. Mistakes happen once, not twice.
 - **Error auto-recall** — when an employee hits an error, the system searches for similar past errors and the fixes that resolved them. Past debugging work compounds instead of being lost.
 
+---
+
 ## How exe-ai-employees compares
 
-exe-ai-employees isn't competing with orchestration frameworks, coding tools, or chat gateways. It's the **memory and identity layer** that sits underneath them and makes them better. Here's how it compares to each.
+exe-ai-employees is the most comprehensive open source memory, communication, and identity system for AI agents available today. It's built on three pillars that no other tool combines.
 
-### exe-ai-employees vs Claude Peers
+### The three pillars
+
+**1. Push-based communication** — the only open source system using push delivery (tmux `send-keys`). Tasks and messages arrive instantly in agent sessions. No heartbeat polling, no wasted tokens, no missed messages. Agents only wake when there's real work.
+
+**2. State-of-the-art memory and retrieval** — every tool call outcome is captured, embedded, and searchable. Not the full conversation (too noisy) — the outcomes: what was done, what was found, what broke, what worked. This selective storage makes retrieval precise.
+
+The retrieval stack:
+
+| Layer | Technology | What it catches |
+|-------|-----------|----------------|
+| **Full-text** | BM25 | Exact terms — function names, error codes, file paths |
+| **Semantic** | Jina v5 Small Q4_K_M (1024-dim vectors) | Conceptual matches — "auth bug" finds "JWT token expiration" |
+| **Fusion** | Reciprocal Rank Fusion (RRF) | Mathematically merges both ranked lists for precision AND recall |
+| **Isolation** | Per-employee memory partitions | No context pollution between roles |
+| **Security** | SQLCipher + AES-256-GCM | Encrypted at every layer, all local |
+
+No other open source agent system combines on-device embeddings, hybrid BM25/vector search, RRF fusion, per-agent segregation, and encrypted storage. Paperclip has no semantic search. Claude Peers has no memory at all. Agno's memory is session-scoped. OpenClaw has no embeddings.
+
+**3. Persistent identity** — each employee has behavioral rules that survive across sessions. When you correct an employee, the correction is stored permanently and applied automatically in every future session. Mistakes happen once, never twice. Each employee's memory is isolated — your engineer's debugging context doesn't pollute your marketing lead's search results.
+
+### Comparison by tool
+
+---
+
+### exe vs Claude Peers
 
 Claude Peers is the closest alternative for multi-agent coordination in Claude Code. The core difference is how messages reach agents.
 
@@ -126,7 +188,9 @@ The difference: push is walking over to someone's desk and tapping them on the s
 
 Claude Peers works when the user is actively talking to agents. It breaks down when agents need to coordinate autonomously — which is the whole point of having a team.
 
-### exe-ai-employees vs Paperclip
+---
+
+### exe vs Paperclip
 
 Paperclip positions as orchestration for "zero-human companies." We believe the value isn't removing the human — it's multiplying what one human can do.
 
@@ -142,7 +206,9 @@ Paperclip positions as orchestration for "zero-human companies." We believe the 
 
 **What Paperclip has that we don't (yet):** web dashboard, budget tracking per agent, multi-protocol adapters. We're focused on the foundation — memory, identity, encryption — first.
 
-### exe-ai-employees vs Claude Code
+---
+
+### exe vs Claude Code
 
 Claude Code isn't a competitor — it's the platform we run on. This comparison clarifies what exe-ai-employees adds on top.
 
@@ -158,7 +224,9 @@ Claude Code isn't a competitor — it's the platform we run on. This comparison 
 
 **What Claude Code does best:** single-agent execution (tool_use loop, context management, permissions), the hook system we plug into, and Ink TUI rendering. We build on these strengths.
 
-### exe-ai-employees vs OpenClaw
+---
+
+### exe vs OpenClaw
 
 OpenClaw is a multi-channel personal AI assistant — WhatsApp, Slack, Discord, Telegram, and 20+ channels. Different goal, different architecture.
 
@@ -174,7 +242,9 @@ OpenClaw is a multi-channel personal AI assistant — WhatsApp, Slack, Discord, 
 
 **What OpenClaw has that we're adding:** multi-channel communication. Slack, Discord, and WhatsApp integration is on our roadmap so you can talk to your AI employees from wherever you already work.
 
-### exe-ai-employees vs Agno
+---
+
+### exe vs Agno
 
 Agno is a Python framework for building and serving agents at scale. It's a framework for developers — you build agents with it. exe-ai-employees is a ready-to-use system — you install it and have a team.
 
@@ -193,6 +263,8 @@ Agno is a Python framework for building and serving agents at scale. It's a fram
 ### The pattern
 
 Other tools give your agents brains. exe-ai-employees gives them a **memory**.
+
+---
 
 ## Install
 
@@ -234,6 +306,8 @@ npm install -g exe-ai-employees && exe-ai-employees --global
 
 That's it. Your AI employees now have persistent memory. Every session builds on the last.
 
+---
+
 ## How it works
 
 ```
@@ -256,6 +330,8 @@ Your AI employee responds with full history from prior sessions
 
 **Memory retrieval** happens two ways. Hooks inject relevant context as you work (passive). MCP tools let employees actively search their own history or a colleague's (active). Searches take ~200ms when the model is warm.
 
+---
+
 ## Encryption
 
 Your data is encrypted at every layer. This isn't optional — it's the default.
@@ -270,6 +346,8 @@ Your data is encrypted at every layer. This isn't optional — it's the default.
 
 Your master encryption key is generated during `/exe:setup` and stored in your system keychain. To move your team to another machine, export a 24-word BIP39 mnemonic phrase and import it on the new device. The sync server (Turso) only ever receives encrypted blobs.
 
+---
+
 ## Exe Cloud — take your AI employees anywhere
 
 Your AI employees shouldn't be locked to one machine. Exe Cloud syncs your entire team's memory across all your devices — laptop, desktop, VPS — with end-to-end encryption. Work on your MacBook at the cafe, switch to your desktop at home, and your AI CTO remembers everything from both machines.
@@ -277,16 +355,24 @@ Your AI employees shouldn't be locked to one machine. Exe Cloud syncs your entir
 ### How it works
 
 ```
-Machine A                          Exe Cloud                         Machine B
-    |                                  |                                  |
-    |  encrypt locally (AES-256-GCM)   |                                  |
-    |  ──────────────────────────────>  |                                  |
-    |         encrypted blob stored     |                                  |
-    |                                   |  download + decrypt locally      |
-    |                                   |  <──────────────────────────────  |
-    |                                   |                                  |
-    Server sees: encrypted data it cannot read. Zero knowledge.
+UPLOAD (Machine A → Cloud)              DOWNLOAD (Cloud → Machine B)
+
+Raw memory data                         Encrypted+compressed blob
+    │                                       │
+    ▼                                       ▼
+Compress (Brotli, ~3-5x smaller)        Decrypt (AES-256-GCM)
+    │                                       │
+    ▼                                       ▼
+Encrypt (AES-256-GCM)                   Decompress (Brotli)
+    │                                       │
+    ▼                                       ▼
+Upload encrypted blob ───────────►      Raw memory data available
+                      Exe Cloud
+              (stores only encrypted
+               blobs it cannot read)
 ```
+
+**Why compress then encrypt (order matters):** Encrypted data is random noise — compression can't reduce it. Plaintext (code, error messages, tool outputs) compresses 3-5x with Brotli. Compressing first while the data has structure, then encrypting the result, saves ~70% storage and bandwidth. The server stores blobs it can neither read nor inflate.
 
 ### Setup
 
@@ -317,6 +403,8 @@ What does NOT sync: the embedding model (downloaded fresh on each machine), your
 
 **Exe Cloud** is a managed sync service for users who work across multiple devices. Currently in development — sign up for early access at [askexe.com](https://askexe.com).
 
+---
+
 ## Search model
 
 Semantic search is powered by an AI embedding model that runs entirely on your machine.
@@ -344,6 +432,8 @@ The model loads once when the MCP server starts and stays warm for the entire se
 
 The model uses approximately 500MB of RAM when loaded. Mac users with Apple Silicon get Metal GPU acceleration automatically. Linux and Intel Mac users run on CPU — still fast for search queries.
 
+---
+
 ## MCP tools
 
 The installer registers an MCP server that Claude Code starts automatically. These tools are available to your AI employees in every session.
@@ -361,6 +451,8 @@ The installer registers an MCP server that Claude Code starts automatically. The
 | `send_message` | Send a message to another employee's session — cross-agent coordination |
 
 Hooks handle memory capture automatically (passive). MCP tools give employees active control — search on demand, store insights, manage work, coordinate with colleagues.
+
+---
 
 ## Architecture decisions
 
@@ -444,6 +536,30 @@ Three features work together to eliminate the most common sources of token waste
 
 **The compound effect:** Push delivery + behavioral memory + role boundaries + structured tasks = every token goes toward productive work. No polling waste, no repeated corrections, no role confusion, no directionless wandering. For a solo founder on a fixed token budget, this is the difference between running 3 employees and running 10.
 
+### The Tasks vs Messages Decision
+
+Most agent systems combine tasks and messages into one system. exe-ai-employees keeps them separate because they serve different purposes:
+
+| | Tasks | Messages |
+|---|---|---|
+| **Purpose** | Work tracking — "this needs to get done" | Communication — "here's something you need to know" |
+| **Lifecycle** | open → in_progress → done (persists until completed) | delivered → processed (transient) |
+| **Normal state** | Open for 3 days = normal | Undelivered for 3 days = problem |
+| **Query pattern** | By status, assignee, priority | By delivery state |
+
+Mixing them means task queries return message noise and message queries return task noise. Separation keeps both clean and queryable.
+
+### The Persistence Decision
+
+Both tasks and messages persist in the database. Nothing is fire-and-forget:
+
+- **Tasks** survive session restarts, machine reboots, and agent crashes. They live until explicitly completed or cancelled.
+- **Messages** stay in the queue until delivered and processed. If delivery fails, they retry on reconnect.
+
+This is different from fire-and-forget systems where a crash means lost work. If exe-ai-employees crashes, nothing is lost. When it comes back up, pending tasks resume and undelivered messages retry. Every piece of work and every communication is durable.
+
+---
+
 ## Common questions
 
 **How is this different from Claude Code's built-in memory?**
@@ -464,11 +580,15 @@ During setup, you receive a 24-word recovery phrase (BIP39 mnemonic). Import it 
 **How much disk space does it use?**
 The embedding model is ~397MB. Memory database size depends on usage — roughly 1MB per 1,000 memories. A heavy user generating 500 memories per day would use about 180MB per year of database storage.
 
+---
+
 ## Requirements
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI
 - Node.js 18 or later
 - 8GB+ RAM recommended
+
+---
 
 ## Recommended terminal
 
@@ -512,6 +632,8 @@ Every keybinding in the config is designed for managing multiple AI employees si
 
 iTerm2, Warp, Alacritty, the default macOS Terminal, or VS Code's integrated terminal all work. Ghostty is recommended, not required.
 
+---
+
 ## tmux — your agent session manager
 
 tmux is a terminal multiplexer — it lets you run multiple terminal sessions inside one window and keeps them alive even when you close the terminal. It's a core Unix tool, battle-tested for decades. For AI employees, tmux means:
@@ -552,6 +674,8 @@ No. You just detached. The employee is still running in the background. Reattach
 
 Full tmux reference: [tmuxcheatsheet.com](https://tmuxcheatsheet.com)
 
+---
+
 ## Commands
 
 | Command | What it does |
@@ -560,6 +684,8 @@ Full tmux reference: [tmuxcheatsheet.com](https://tmuxcheatsheet.com)
 | `/exe:search "query"` | Search your employees' memories |
 | `/exe:settings` | Toggle memory capture, search modes, sync |
 | `/exe:cloud` | Set up encrypted sync between machines |
+
+---
 
 ## Exe OS — the bigger picture
 
@@ -611,6 +737,8 @@ The primitives are free and open — memory, identity, search, encryption, commu
 
 **Sign up for Exe OS early access at [askexe.com](https://askexe.com).**
 
+---
+
 ## Development
 
 ```bash
@@ -630,6 +758,8 @@ We welcome contributions. Here's how:
 - **Pull requests** — fork, create a branch, write tests, submit a PR
 - **Code style** — TypeScript, Vitest for tests, follow existing patterns in the codebase
 
+---
+
 ## Community
 
 - [GitHub Issues](https://github.com/AskExe/exe-ai-employees/issues) — bugs and feature requests
@@ -637,6 +767,8 @@ We welcome contributions. Here's how:
 - [askexe.com](https://askexe.com) — Exe Cloud updates and early access
 
 Built by a solo founder, for solo founders.
+
+---
 
 ## License
 
