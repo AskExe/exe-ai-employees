@@ -307,10 +307,18 @@ claude
 ```
 
 ```bash
-# 5. Start working — memory captures everything automatically
-# Just use Claude Code normally. Every tool call is recorded.
+# 5. Launch your employee — they become Claude for this session
+/exe:call analyst
+# → Writes identity marker so all memories are tagged to "analyst"
+# → Scans for open tasks and starts working if any exist
+# → Adopts the employee's system prompt and personality
+```
 
-# 6. Next session — your employee remembers
+```bash
+# 6. Start working — memory captures everything automatically
+# Just use Claude Code normally. Every tool call + prompt is recorded.
+
+# 7. Next session — your employee remembers
 > "What did we do last time on the auth refactor?"
 # → Employee searches past sessions, finds relevant context,
 #   and responds with full history from prior work.
