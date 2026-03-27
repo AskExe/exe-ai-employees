@@ -9,6 +9,7 @@
  */
 
 import crypto from "node:crypto";
+import { execSync } from "node:child_process";
 import { getClient } from "./turso.js";
 
 // ---------------------------------------------------------------------------
@@ -134,4 +135,66 @@ export async function markProcessed(messageId: string): Promise<void> {
     sql: "UPDATE messages SET status = 'processed', processed_at = ? WHERE id = ?",
     args: [new Date().toISOString(), messageId],
   });
+}
+
+// ---------------------------------------------------------------------------
+// Basic tmux delivery — find session, push intercom
+// ---------------------------------------------------------------------------
+
+/** Get the current tmux session name, or null if not in tmux. */
+function getMyTmuxSession(): string | null {
+  try {
+    return execSync("tmux display-message -p '#{session_name}'", {
+      encoding: "utf8",
+      timeout: 3000,
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim() || null;
+  } catch {
+    return null;
+  }
+}
+
+/** Extract the root exe session from a session name: yoshi-exe1 → exe1 */
+function extractExeSession(sessionName: string): string | null {
+  const match = sessionName.match(/(exe\d+)$/);
+  return match?.[1] ?? null;
+}
+
+/** Check if a tmux session exists. */
+function tmuxSessionExists(name: string): boolean {
+  try {
+    execSync(`tmux has-session -t ${JSON.stringify(name)}`, {
+      timeout: 3000,
+      stdio: "ignore",
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Attempt to deliver a message via tmux send-keys.
+ * Constructs exact session name: `{agent}-{exeSession}` — never prefix-matches.
+ * Returns true if intercom was sent, false if session not found.
+ */
+export function deliverViaTmux(targetAgent: string): boolean {
+  const mySession = getMyTmuxSession();
+  if (!mySession) return false;
+
+  const exeSession = extractExeSession(mySession);
+  if (!exeSession) return false;
+
+  const targetSession = `${targetAgent}-${exeSession}`;
+  if (!tmuxSessionExists(targetSession)) return false;
+
+  try {
+    execSync(
+      `tmux send-keys -t ${JSON.stringify(targetSession)} '/exe:intercom' Enter`,
+      { timeout: 3000, stdio: "ignore" },
+    );
+    return true;
+  } catch {
+    return false;
+  }
 }

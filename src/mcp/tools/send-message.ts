@@ -9,7 +9,7 @@
 
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { sendMessage } from "../../lib/messaging.js";
+import { sendMessage, deliverViaTmux, markDelivered } from "../../lib/messaging.js";
 import { getActiveAgent } from "../../adapters/claude/active-agent.js";
 
 export function registerSendMessage(server: McpServer): void {
@@ -43,11 +43,21 @@ export function registerSendMessage(server: McpServer): void {
         priority,
       });
 
+      // Attempt immediate delivery via tmux
+      const delivered = deliverViaTmux(target_agent);
+      if (delivered) {
+        await markDelivered(msg.id);
+      }
+
+      const statusText = delivered
+        ? "delivered (intercom sent)"
+        : "queued (session not found — will be picked up on next start)";
+
       return {
         content: [
           {
             type: "text" as const,
-            text: `Message queued for ${target_agent}. ID: ${msg.id}`,
+            text: `Message sent to ${target_agent}: ${statusText}\nID: ${msg.id}`,
           },
         ],
       };
