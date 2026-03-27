@@ -286,23 +286,35 @@ On your first session, run `/exe:setup` inside Claude Code to generate your encr
 ```bash
 # 1. Install
 npm install -g exe-ai-employees && exe-ai-employees --global
+```
 
-# 2. Open Claude Code and run setup
+```bash
+# 2. Start a named tmux session — one per project
+tmux new -s exe1
+# Each project gets its own exe# session: exe1, exe2, exe3...
+# Employee sessions inherit the number: yoshi-exe1, tom-exe1, etc.
+# This scoping is required — dispatch and intercom won't work without it.
+# Inside the tmux session:
+claude
+```
+
+```bash
+# 3. Run setup
 /exe:setup
 # → Generates your encryption key (stored in system keychain)
 # → Downloads the embedding model (~397MB, one-time)
 ```
 
 ```bash
-# 3. Create your first employee (or use the defaults)
+# 4. Create your first employee (or use the defaults)
 /exe:new-employee analyst
 ```
 
 ```bash
-# 4. Start working — memory captures everything automatically
+# 5. Start working — memory captures everything automatically
 # Just use Claude Code normally. Every tool call is recorded.
 
-# 5. Next session — your employee remembers
+# 6. Next session — your employee remembers
 > "What did we do last time on the auth refactor?"
 # → Employee searches past sessions, finds relevant context,
 #   and responds with full history from prior work.
@@ -365,6 +377,15 @@ The installer registers an MCP server that Claude Code starts automatically. The
 
 Hooks handle memory capture automatically (passive). MCP tools give employees active control — search on demand, store insights, manage work, coordinate with colleagues.
 
+**Time-bounded retrieval:** `recall_my_memory` and `ask_team_memory` both accept a `since` parameter — an ISO 8601 timestamp that filters results to memories at or after that time.
+
+```
+recall_my_memory("auth bug", since: "2026-03-26T00:00:00Z")
+ask_team_memory("yoshi", "what was built today", since: "2026-03-27T00:00:00Z")
+```
+
+Use `get_session_context` when you need a window of memories around a specific point in time — useful for reconstructing what happened in a past session.
+
 ---
 
 ## Recommended terminal
@@ -420,6 +441,20 @@ tmux is a terminal multiplexer — it lets you run multiple terminal sessions in
 - You can attach to any employee's session to watch them work, then detach and let them continue
 
 tmux is quirky for newcomers, but once you know 5 shortcuts it becomes your best friend. Here's everything you need:
+
+### Session naming convention
+
+exe-ai-employees uses a numbered naming scheme — one session per project:
+
+```bash
+tmux new -s exe1     # project 1
+tmux new -s exe2     # project 2 (separate terminal)
+tmux new -s exe3     # project 3
+```
+
+**Why this matters:** employees spawned from `exe1` are named `yoshi-exe1`, `tom-exe1`, `mari-exe1`. The `exe#` suffix scopes them to that project. `exe1`'s employees never receive tasks from `exe2`, and vice versa — it's a hard isolation boundary. If you skip the naming convention (e.g. start a session called `work`), dispatch and intercom won't be able to route correctly.
+
+**One exe = one repo.** Keep each `exe#` session inside its project directory. Memory is scoped by both role and project, so switching repos automatically partitions what each employee remembers.
 
 ### Essential shortcuts
 
@@ -560,6 +595,50 @@ Both tasks and messages persist in the database. Nothing is fire-and-forget:
 - **Messages** stay in the queue until delivered and processed. If delivery fails, they retry on reconnect.
 
 This is different from fire-and-forget systems where a crash means lost work. If exe-ai-employees crashes, nothing is lost. When it comes back up, pending tasks resume and undelivered messages retry. Every piece of work and every communication is durable.
+
+### What Gets Embedded — The Memory Schema
+
+Every tool call that fires the ingest hook produces one memory record. What text gets embedded determines search quality and what `recall_my_memory` returns.
+
+**What `raw_text` contains per tool:**
+
+| Tool | What gets embedded |
+|------|--------------------|
+| `Bash` | Command + stdout + stderr (truncated at 8KB) |
+| `Edit` | Old string, new string, file path |
+| `Write` | File path + full content written (truncated at 8KB) |
+| `Read` | File path + file content read (truncated at 8KB) |
+| `Glob` | Pattern + matching file paths |
+| `Grep` | Pattern + matching lines with file paths |
+| `MCP tool` | Tool name + JSON input params + output text |
+| `Agent` | Prompt summary + output summary |
+| `store_memory` | The text passed to store (content over wrapper params) |
+| `store_behavior` | The behavioral rule text |
+
+Truncation at 8KB is intentional — embedding quality degrades on longer inputs, and the model's effective context is 8K tokens.
+
+**Metadata stored with every memory:**
+
+```
+agent_id       — which employee (yoshi, mari, exe, tom, or default)
+tool_name      — which tool (Bash, Edit, Write, MCP tool name, etc.)
+project_name   — git root directory basename (auto-derived from CWD)
+session_key    — stable Claude Code session identifier
+timestamp      — ISO 8601 UTC
+has_error      — 1 if error patterns detected in output, 0 otherwise
+vector         — 1024-dim float32 (NULL if daemon unavailable at write time)
+```
+
+**How `project_name` is derived:** the ingest hook walks up from the current working directory until it finds a `.git` folder. The root's directory name becomes `project_name`. All memories from any subdirectory of a repo share the same project scope.
+
+**What does NOT get embedded:**
+
+- Claude's text responses (not tool calls)
+- System prompt content
+- Conversation messages
+- Hook output injected as read-path context
+
+The memory system records **what the employee did** (tool calls), not **what they said**. Tool calls contain the ground truth: what files were read, what code was written, what commands ran.
 
 ---
 
