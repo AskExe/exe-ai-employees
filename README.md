@@ -258,6 +258,51 @@ Agno is a Python framework for building and serving agents at scale. It's a fram
 
 **What we learn from Agno:** team/workflow primitives, RunEvent streaming, session persistence patterns, context compression. Agno's architecture informs our design even though the implementation is different.
 
+### exe vs OpenViking
+
+OpenViking (volcengine/OpenViking) is an open-source "context database for AI agents" by ByteDance/Volcengine. It uses a filesystem paradigm — memories, resources, and skills organized hierarchically — and a three-tier loading model (L0/L1/L2) that loads context on-demand to minimize token consumption.
+
+**Key difference: context database vs employee orchestration.** OpenViking solves the context retrieval problem for a single agent. exe-ai-employees solves the team problem: multiple agents with isolated identities, persistent memories, task tracking, push messaging, and encrypted storage.
+
+| | OpenViking | exe-ai-employees |
+|---|---|---|
+| **Scope** | Context DB for single agent | Multi-agent orchestration + memory |
+| **Storage** | Plain JSON / workspace files | SQLCipher-encrypted database |
+| **Embeddings** | Cloud APIs (OpenAI, Gemini, Jina, Voyage) | On-device only — Jina v5 Small local |
+| **Search** | Semantic + directory-based | Hybrid BM25 + vector + RRF fusion |
+| **Multi-agent** | Not the focus | Core: isolated identities, task dispatch, messaging |
+| **Observability** | Retrieval trajectory visualization | Not yet — we don't expose why context was selected |
+| **Token loading** | Tiered — load only what's needed | Full context injection |
+
+**Where OpenViking has a genuine edge:** retrieval observability — you can visualize *why* an agent got certain context. We don't expose retrieval trajectories. Their tiered loading is also clever for cost optimization (only load L1/L2 when needed). And they support multiple embedding providers if you want that flexibility.
+
+**What we chose differently:** we locked to one on-device model to eliminate cloud embedding dependency entirely. And we built an orchestration layer (tasks, messaging, behaviors, encryption) that OpenViking leaves to the user.
+
+---
+
+### exe vs Ruflo
+
+Ruflo (ruvnet/ruflo, originally "Claude Flow") is an enterprise multi-agent orchestration framework for Claude Code. It ships 100+ specialized agent types, swarm coordination with consensus algorithms (Raft, BFT), Q-learning-based task routing, and a WASM-based agent booster for sub-millisecond zero-LLM-cost execution on simple tasks.
+
+**Key difference: sophistication vs simplicity.** Ruflo is a comprehensive platform with a massive configuration surface. exe-ai-employees is a focused system — memory, identity, tasks, encrypted storage — that a solo founder can set up in one command and understand in one afternoon.
+
+| | Ruflo | exe-ai-employees |
+|---|---|---|
+| **Agent variety** | 100+ specialized agent types | Template system (CTO, Engineer, CMO + custom) |
+| **Memory** | MiniLM ONNX embeddings, session-oriented | Hybrid BM25 + vector (Jina v5 Small), persistent across all sessions |
+| **Encryption** | Basic input validation, bcrypt | SQLCipher + AES-256-GCM on every memory |
+| **Setup** | Complex — 100+ agents, 12 workers, 9 RL algorithms | `npm install`, `/exe:setup`, done |
+| **Routing** | Q-learning adapts agent selection | Task dispatch + push intercom |
+| **Cloud sync** | Local-only / optional PostgreSQL | E2E encrypted sync across machines |
+| **LLM cost optimization** | WASM bypass, token compression, model routing | Not built in |
+| **Swarm coordination** | Raft/BFT consensus, topologies | Not in scope — simple dispatch |
+
+**Where Ruflo has a genuine edge:** multi-agent coordination depth — swarm topologies, consensus algorithms, and reinforcement-learning routing are genuinely sophisticated. Their WASM agent booster for simple tasks is a clever cost optimization we don't offer. And 100+ built-in agent types is a larger ecosystem.
+
+**What we chose differently:** depth over breadth. We'd rather do memory, identity, encryption, and task orchestration exceptionally well than be a platform that claims to do everything. For a solo founder, the complexity of configuring 100+ agents and 12 background workers is a liability, not a feature.
+
+---
+
 ### The pattern
 
 Other tools give your agents brains. exe-ai-employees gives them a **memory**.
