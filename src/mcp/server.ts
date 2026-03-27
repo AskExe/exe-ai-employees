@@ -1,7 +1,7 @@
 /**
  * MCP server entry point with stdio transport.
  *
- * Long-lived process that exposes four memory tools.
+ * Long-lived process that exposes five memory tools.
  * Embedding is handled by the daemon (embed-daemon.ts) — this server
  * no longer loads the model directly.
  *
@@ -10,6 +10,7 @@
  * - ask_team_memory: search colleague's memories (MCP-03)
  * - get_session_context: temporal window around timestamp (MCP-04)
  * - store_memory: manual memory ingestion fallback (MCP-08, INGEST-07)
+ * - store_behavior: persist behavioral patterns/corrections
  *
  * CRITICAL: Never write to stdout -- MCP uses stdout for JSON-RPC (MCP-06).
  * All logging goes to stderr.
@@ -30,6 +31,7 @@ import { registerRecallMyMemory } from "./tools/recall-my-memory.js";
 import { registerAskTeamMemory } from "./tools/ask-team-memory.js";
 import { registerGetSessionContext } from "./tools/get-session-context.js";
 import { registerStoreMemory } from "./tools/store-memory.js";
+import { registerStoreBehavior } from "./tools/store-behavior.js";
 
 const server = new McpServer({
   name: "exe-memory",
@@ -43,6 +45,7 @@ registerRecallMyMemory(server);
 registerAskTeamMemory(server);
 registerGetSessionContext(server);
 registerStoreMemory(server);
+registerStoreBehavior(server);
 
 try {
   // Initialize store (libSQL + encryption)

@@ -34,6 +34,7 @@ export default defineConfig({
     "lib/error-detector": "src/lib/error-detector.ts",
     "lib/employees": "src/lib/employees.ts",
     "lib/employee-templates": "src/lib/employee-templates.ts",
+    "lib/behaviors": "src/lib/behaviors.ts",
   },
   format: ["esm"],
   target: "node18",

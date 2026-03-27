@@ -126,6 +126,26 @@ export async function ensureSchema(): Promise<void> {
     END;
   `);
 
+  // Behaviors table — persistent per-agent patterns and corrections
+  await client.executeMultiple(`
+    CREATE TABLE IF NOT EXISTS behaviors (
+      id            TEXT PRIMARY KEY,
+      agent_id      TEXT NOT NULL,
+      project_name  TEXT,
+      domain        TEXT,
+      content       TEXT NOT NULL,
+      active        INTEGER NOT NULL DEFAULT 1,
+      created_at    TEXT NOT NULL,
+      updated_at    TEXT NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_behaviors_agent
+      ON behaviors(agent_id);
+
+    CREATE INDEX IF NOT EXISTS idx_behaviors_agent_active
+      ON behaviors(agent_id, active);
+  `);
+
   // Sync metadata table
   await client.executeMultiple(`
     CREATE TABLE IF NOT EXISTS sync_meta (

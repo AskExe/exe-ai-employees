@@ -25,6 +25,7 @@ if (!loadConfigSync().autoRetrieval) {
 import type { SessionStartPayload } from "../../../types/hook-payload.js";
 import { loadConfig } from "../../../lib/config.js";
 import { initStore } from "../../../lib/store.js";
+import { getClient } from "../../../lib/turso.js";
 import { lightweightSearch, hybridSearch } from "../../../lib/hybrid-search.js";
 import { getActiveAgent, cleanupSessionMarkers } from "../active-agent.js";
 import { getProjectName } from "../../../lib/project-name.js";
@@ -87,6 +88,28 @@ process.stdin.on("end", async () => {
         )
         .join("\n");
       additionalContext = `${header}\n${brief}`;
+    }
+
+    // --- Behavioral memory injection ---
+    try {
+      const client = getClient();
+      const behaviorResult = await client.execute({
+        sql: `SELECT domain, content, project_name FROM behaviors
+              WHERE agent_id = ? AND active = 1
+                AND (project_name IS NULL OR project_name = ?)
+              ORDER BY updated_at DESC LIMIT 12`,
+        args: [agentId, projectName],
+      });
+      if (behaviorResult.rows.length > 0) {
+        const lines = behaviorResult.rows.map((r) => {
+          const tag = r.domain ? `[${r.domain}]` : "";
+          const scope = r.project_name ? ` (${r.project_name})` : "";
+          return `- ${tag} ${String(r.content)}${scope}`;
+        });
+        additionalContext += `\n\n## Your Behavioral Memory\nThese are validated patterns and corrections. Follow them.\n${lines.join("\n")}`;
+      }
+    } catch {
+      // Table may not exist yet — silently skip
     }
 
     if (additionalContext.length > 0) {
