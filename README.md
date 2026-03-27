@@ -4,7 +4,7 @@
 
 **No company can be run by AI. But ONE person can have many AI employees, today.**
 
-exe-ai-employees gives you a team of AI employees — each with their own role, their own memory, and the ability to learn from every session. Works with Claude Code. MCP support for other tools coming soon. You stay in charge. They do the work.
+The most advanced memory system available for AI agents — running entirely on your machine. Hybrid retrieval (Jina v5 Small + BM25 + RRF), full-database encryption (SQLCipher + AES-256-GCM), persistent identity across sessions, and multi-agent coordination. Each employee has their own role, memory, task queue, and the ability to learn from every session. Zero cloud dependency. Zero vendor lock-in. Works with Claude Code today.
 
 ```bash
 npm install -g exe-ai-employees && exe-ai-employees --global
