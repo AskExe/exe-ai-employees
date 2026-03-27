@@ -24,13 +24,23 @@ if (!loadConfigSync().autoRetrieval) {
   process.exit(0);
 }
 
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { spawn } from "node:child_process";
+import { readFileSync, writeFileSync, mkdirSync, existsSync, openSync, closeSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import type { UserPromptSubmitPayload } from "../../../types/hook-payload.js";
 import { loadConfig, EXE_AI_DIR } from "../../../lib/config.js";
 import { initStore } from "../../../lib/store.js";
 import { lightweightSearch, hybridSearch } from "../../../lib/hybrid-search.js";
 import { getActiveAgent } from "../active-agent.js";
+
+// Shared worker log path — all detached workers write stderr here
+const WORKER_LOG_PATH = path.join(EXE_AI_DIR, "workers.log");
+
+/** Open workers.log in append mode; returns "ignore" if open fails. */
+function openWorkerLog(): number | "ignore" {
+  try { return openSync(WORKER_LOG_PATH, "a"); } catch { return "ignore"; }
+}
 
 const CACHE_DIR = path.join(EXE_AI_DIR, "session-cache");
 
@@ -75,7 +85,12 @@ process.stdin.on("end", async () => {
     const agent = getActiveAgent();
 
     // Relevance gate: skip memory retrieval for short messages like "yes", "ok", "keep going"
+    // Storage uses a lower threshold (10 chars) — see spawnPromptWorker below
     if (prompt.length < 20) {
+      // Still store prompts >= 10 chars even though we skip retrieval
+      if (prompt.length >= 10) {
+        spawnPromptWorker(prompt, data.session_id, agent);
+      }
       process.exit(0);
     }
 
@@ -114,9 +129,55 @@ process.stdin.on("end", async () => {
         process.stdout.write(output);
       }
     }
+
+    // --- Storage: embed and store the user prompt as a memory record ---
+    // Non-blocking: spawn detached worker AFTER retrieval output is written
+    spawnPromptWorker(prompt, data.session_id, agent);
   } catch {
     // Silent failure -- hook must never block Claude Code
   }
 
   process.exit(0);
 });
+
+/**
+ * Spawn a detached worker to embed and store the user prompt.
+ * Worker receives data via env vars — no stdin pipe needed.
+ */
+function spawnPromptWorker(
+  prompt: string,
+  sessionId: string,
+  agent: { agentId: string; agentRole: string },
+): void {
+  // Respect autoIngestion setting (separate from autoRetrieval)
+  if (!loadConfigSync().autoIngestion) return;
+
+  try {
+    const workerPath = path.resolve(
+      path.dirname(fileURLToPath(import.meta.url)),
+      "prompt-ingest-worker.js",
+    );
+
+    if (!existsSync(workerPath)) {
+      process.stderr.write(`[prompt-submit] WARN: prompt-ingest-worker not found at ${workerPath}\n`);
+      return;
+    }
+
+    const stderrFd = openWorkerLog();
+    const worker = spawn(process.execPath, [workerPath], {
+      detached: true,
+      stdio: ["ignore", "ignore", stderrFd],
+      env: {
+        ...process.env,
+        AGENT_ID: agent.agentId,
+        AGENT_ROLE: agent.agentRole,
+        EXE_PROMPT_TEXT: prompt.slice(0, 2000),
+        EXE_SESSION_ID: sessionId,
+      },
+    });
+    worker.unref();
+    if (typeof stderrFd === "number") try { closeSync(stderrFd); } catch {}
+  } catch {
+    // Non-critical — retrieval still works even if storage fails
+  }
+}
