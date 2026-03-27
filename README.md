@@ -11,7 +11,7 @@
 exe-ai-employees gives you a team of AI employees — each with their own role, their own memory, and the ability to learn from every session. Works with Claude Code today, and any MCP-compatible agent tool. You stay in charge. They do the work.
 
 <div align="center">
-  <video src="media/demo.mp4" width="600" controls></video>
+  <img src="./readme-demo-image.png" width="600" alt="Demo" />
   <p><em>One founder. Multiple AI employees. Real-time coordination.</em></p>
 </div>
 
