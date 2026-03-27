@@ -2,7 +2,7 @@
  * MCP server entry point with stdio transport.
  *
  * Long-lived process that exposes five memory tools.
- * Embedding is handled by the daemon (embed-daemon.ts) — this server
+ * Embedding is handled by the daemon (exe-daemon.ts) — this server
  * no longer loads the model directly.
  *
  * Tools:

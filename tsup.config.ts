@@ -23,8 +23,8 @@ export default defineConfig({
     "mcp/server": "src/mcp/server.ts",
     // Libs
     "lib/embedder": "src/lib/embedder.ts",
-    "lib/embed-daemon": "src/lib/embed-daemon.ts",
-    "lib/embed-client": "src/lib/embed-client.ts",
+    "lib/exe-daemon": "src/lib/exe-daemon.ts",
+    "lib/exe-daemon-client": "src/lib/exe-daemon-client.ts",
     "lib/store": "src/lib/store.ts",
     "lib/config": "src/lib/config.ts",
     "lib/crypto": "src/lib/crypto.ts",

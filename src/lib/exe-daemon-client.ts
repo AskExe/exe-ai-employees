@@ -1,10 +1,10 @@
 /**
- * Embedding daemon client — connects to the embed-daemon via Unix socket.
+ * Embedding daemon client — connects to the exe-daemon via Unix socket.
  *
  * Auto-starts the daemon if it's not running. Falls back to null on failure
  * so callers can degrade to FTS-only search or zero-vector writes.
  *
- * @module embed-client
+ * @module exe-daemon-client
  */
 
 import net from "node:net";
@@ -19,9 +19,9 @@ import { EXE_AI_DIR } from "./config.js";
 // Config
 // ---------------------------------------------------------------------------
 
-const SOCKET_PATH = process.env.EXE_EMBED_SOCK ?? path.join(EXE_AI_DIR, "embed.sock");
-const PID_PATH = process.env.EXE_EMBED_PID ?? path.join(EXE_AI_DIR, "embed.pid");
-const SPAWN_LOCK_PATH = path.join(EXE_AI_DIR, "embed-spawn.lock");
+const SOCKET_PATH = process.env.EXE_EMBED_SOCK ?? path.join(EXE_AI_DIR, "exed.sock");
+const PID_PATH = process.env.EXE_EMBED_PID ?? path.join(EXE_AI_DIR, "exed.pid");
+const SPAWN_LOCK_PATH = path.join(EXE_AI_DIR, "exed-spawn.lock");
 const SPAWN_LOCK_STALE_MS = 30_000; // Lock older than 30s is considered stale
 const CONNECT_TIMEOUT_MS = 15_000; // Max wait for daemon cold start
 const REQUEST_TIMEOUT_MS = 30_000; // Max wait for embed response
@@ -106,22 +106,22 @@ function findPackageRoot(): string | null {
 function spawnDaemon(): void {
   const pkgRoot = findPackageRoot();
   if (!pkgRoot) {
-    process.stderr.write("[embed-client] WARN: cannot find package root\n");
+    process.stderr.write("[exed-client] WARN: cannot find package root\n");
     return;
   }
-  const daemonPath = path.join(pkgRoot, "dist", "lib", "embed-daemon.js");
+  const daemonPath = path.join(pkgRoot, "dist", "lib", "exe-daemon.js");
 
   if (!existsSync(daemonPath)) {
-    process.stderr.write(`[embed-client] WARN: daemon script not found at ${daemonPath}\n`);
+    process.stderr.write(`[exed-client] WARN: daemon script not found at ${daemonPath}\n`);
     return;
   }
 
   const resolvedPath = daemonPath;
 
-  process.stderr.write(`[embed-client] Spawning daemon: ${resolvedPath}\n`);
+  process.stderr.write(`[exed-client] Spawning daemon: ${resolvedPath}\n`);
 
   // Log daemon stderr to a file for debugging
-  const logPath = path.join(path.dirname(SOCKET_PATH), "embed-daemon.log");
+  const logPath = path.join(path.dirname(SOCKET_PATH), "exe-daemon.log");
   let stderrFd: number | "ignore" = "ignore";
   try {
     stderrFd = openSync(logPath, "a");
@@ -333,7 +333,7 @@ export async function pingDaemon(): Promise<{ status: string; uptime: number; re
  * Kill the daemon process, clean up stale files, and respawn.
  */
 function killAndRespawnDaemon(): void {
-  process.stderr.write("[embed-client] Killing daemon for restart...\n");
+  process.stderr.write("[exed-client] Killing daemon for restart...\n");
 
   // Kill the old process
   if (existsSync(PID_PATH)) {
@@ -375,7 +375,7 @@ export async function embedViaClient(text: string, priority: "high" | "low" = "h
   if (_requestCount % HEALTH_CHECK_INTERVAL === 0) {
     const health = await pingDaemon();
     if (!health) {
-      process.stderr.write(`[embed-client] Periodic health check failed at request ${_requestCount} — restarting daemon\n`);
+      process.stderr.write(`[exed-client] Periodic health check failed at request ${_requestCount} — restarting daemon\n`);
       killAndRespawnDaemon();
       // Wait for respawn and reconnect
       const start = Date.now();
@@ -394,7 +394,7 @@ export async function embedViaClient(text: string, priority: "high" | "low" = "h
 
   // First attempt failed — try restart + retry once
   if (result.error) {
-    process.stderr.write(`[embed-client] Embed failed (${result.error}) — attempting restart\n`);
+    process.stderr.write(`[exed-client] Embed failed (${result.error}) — attempting restart\n`);
     killAndRespawnDaemon();
     const start = Date.now();
     let delay = 200;
@@ -407,7 +407,7 @@ export async function embedViaClient(text: string, priority: "high" | "low" = "h
 
     const retry = await sendRequest([text], priority);
     if (!retry.error && retry.vectors?.[0]) return retry.vectors[0];
-    process.stderr.write(`[embed-client] Embed retry also failed: ${retry.error ?? "no vector"}\n`);
+    process.stderr.write(`[exed-client] Embed retry also failed: ${retry.error ?? "no vector"}\n`);
   }
 
   return null;
@@ -427,7 +427,7 @@ export async function embedBatchViaClient(texts: string[], priority: "high" | "l
 
   // First attempt failed — restart + retry once
   if (result.error) {
-    process.stderr.write(`[embed-client] Batch embed failed (${result.error}) — attempting restart\n`);
+    process.stderr.write(`[exed-client] Batch embed failed (${result.error}) — attempting restart\n`);
     killAndRespawnDaemon();
     const start = Date.now();
     let delay = 200;
@@ -440,7 +440,7 @@ export async function embedBatchViaClient(texts: string[], priority: "high" | "l
 
     const retry = await sendRequest(texts, priority);
     if (!retry.error && retry.vectors) return retry.vectors;
-    process.stderr.write(`[embed-client] Batch retry also failed: ${retry.error ?? "no vectors"}\n`);
+    process.stderr.write(`[exed-client] Batch retry also failed: ${retry.error ?? "no vectors"}\n`);
   }
 
   return null;

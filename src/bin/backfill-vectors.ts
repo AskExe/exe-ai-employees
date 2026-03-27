@@ -15,7 +15,7 @@
 
 import { initStore, vectorToBlob } from "../lib/store.js";
 import { getClient } from "../lib/turso.js";
-import { connectEmbedDaemon, embedViaClient } from "../lib/embed-client.js";
+import { connectEmbedDaemon, embedViaClient } from "../lib/exe-daemon-client.js";
 import { EXE_AI_DIR } from "../lib/config.js";
 import { isMainModule } from "../lib/is-main.js";
 import { existsSync, unlinkSync } from "node:fs";

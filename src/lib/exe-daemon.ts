@@ -10,12 +10,12 @@
  *          or {"id":"uuid","error":"msg"}\n
  *
  * Lifecycle:
- *   - Spawned by embed-client on first connection attempt
+ *   - Spawned by exe-daemon-client on first connection attempt
  *   - Shuts down after 5 minutes of no connections + empty queues
- *   - PID file at ~/.exe-mem/embed.pid
- *   - Socket at ~/.exe-mem/embed.sock
+ *   - PID file at ~/.exe-mem/exed.pid
+ *   - Socket at ~/.exe-mem/exed.sock
  *
- * @module embed-daemon
+ * @module exe-daemon
  */
 
 import net from "node:net";
@@ -29,8 +29,8 @@ import { EMBEDDING_DIM } from "../types/memory.js";
 // Config
 // ---------------------------------------------------------------------------
 
-const SOCKET_PATH = process.env.EXE_EMBED_SOCK ?? path.join(EXE_AI_DIR, "embed.sock");
-const PID_PATH = process.env.EXE_EMBED_PID ?? path.join(EXE_AI_DIR, "embed.pid");
+const SOCKET_PATH = process.env.EXE_EMBED_SOCK ?? path.join(EXE_AI_DIR, "exed.sock");
+const PID_PATH = process.env.EXE_EMBED_PID ?? path.join(EXE_AI_DIR, "exed.pid");
 const MODEL_FILE = "jina-embeddings-v5-small-q4_k_m.gguf";
 const IDLE_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes — longer to avoid cold starts during active sessions
 
@@ -73,15 +73,15 @@ const _startedAt = Date.now();
 async function loadModel(): Promise<void> {
   const modelPath = path.join(MODELS_DIR, MODEL_FILE);
   if (!existsSync(modelPath)) {
-    process.stderr.write(`[embed-daemon] FATAL: model not found at ${modelPath}\n`);
+    process.stderr.write(`[exed] FATAL: model not found at ${modelPath}\n`);
     process.exit(1);
   }
 
-  process.stderr.write("[embed-daemon] Loading model...\n");
+  process.stderr.write("[exed] Loading model...\n");
   _llama = await getLlama();
   _model = await _llama.loadModel({ modelPath });
   _context = await _model.createEmbeddingContext();
-  process.stderr.write("[embed-daemon] Model loaded and ready.\n");
+  process.stderr.write("[exed] Model loaded and ready.\n");
 }
 
 // ---------------------------------------------------------------------------
@@ -152,7 +152,7 @@ function checkIdle(): void {
   if (_activeConnections === 0 && highQueue.length === 0 && lowQueue.length === 0) {
     resetIdleTimer();
     _idleTimer = setTimeout(() => {
-      process.stderr.write("[embed-daemon] Idle timeout — shutting down.\n");
+      process.stderr.write("[exed] Idle timeout — shutting down.\n");
       void shutdown();
     }, IDLE_TIMEOUT_MS);
     _idleTimer.unref();
@@ -179,7 +179,7 @@ async function shutdown(): Promise<void> {
   try { unlinkSync(SOCKET_PATH); } catch { /* may not exist */ }
   try { unlinkSync(PID_PATH); } catch { /* may not exist */ }
 
-  process.stderr.write("[embed-daemon] Shutdown complete.\n");
+  process.stderr.write("[exed] Shutdown complete.\n");
   process.exit(0);
 }
 
@@ -211,7 +211,7 @@ async function handleHealthCheck(socket: net.Socket, requestId: string): Promise
       : { error: "unhealthy: model not loaded or test embed failed" }),
   });
   if (!healthy || !testOk) {
-    process.stderr.write("[embed-daemon] Health check failed — exiting for restart.\n");
+    process.stderr.write("[exed] Health check failed — exiting for restart.\n");
     void shutdown();
   }
 }
@@ -281,15 +281,15 @@ function startServer(): void {
 
   server.on("error", (err: NodeJS.ErrnoException) => {
     if (err.code === "EADDRINUSE") {
-      process.stderr.write("[embed-daemon] Socket already in use — another daemon is running. Exiting.\n");
+      process.stderr.write("[exed] Socket already in use — another daemon is running. Exiting.\n");
       process.exit(0);
     }
-    process.stderr.write(`[embed-daemon] Server error: ${err.message}\n`);
+    process.stderr.write(`[exed] Server error: ${err.message}\n`);
     process.exit(1);
   });
 
   server.listen(SOCKET_PATH, () => {
-    process.stderr.write(`[embed-daemon] Listening on ${SOCKET_PATH}\n`);
+    process.stderr.write(`[exed] Listening on ${SOCKET_PATH}\n`);
 
     // Write PID file
     writeFileSync(PID_PATH, String(process.pid));
@@ -314,7 +314,7 @@ try {
   await loadModel();
   startServer();
 } catch (err) {
-  process.stderr.write(`[embed-daemon] FATAL: ${err instanceof Error ? err.message : String(err)}\n`);
+  process.stderr.write(`[exed] FATAL: ${err instanceof Error ? err.message : String(err)}\n`);
   try { unlinkSync(SOCKET_PATH); } catch { /* ignore */ }
   try { unlinkSync(PID_PATH); } catch { /* ignore */ }
   process.exit(1);

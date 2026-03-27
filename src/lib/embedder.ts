@@ -1,5 +1,5 @@
 /**
- * Embedding API — delegates to the embed-daemon via Unix socket.
+ * Embedding API — delegates to the exe-daemon via Unix socket.
  *
  * The daemon holds the single model instance in GPU memory.
  * This module provides the same public API as before (embed, getEmbedder,
@@ -17,7 +17,7 @@ import {
   connectEmbedDaemon,
   embedViaClient,
   disconnectClient,
-} from "./embed-client.js";
+} from "./exe-daemon-client.js";
 
 /**
  * Connect to the embedding daemon (replaces pre-warming the model).

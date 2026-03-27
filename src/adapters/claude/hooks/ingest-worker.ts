@@ -5,7 +5,7 @@
  * Reads the full PostToolUse payload from stdin, builds raw_text,
  * generates an embedding via the daemon, and writes to libSQL.
  *
- * The embedding daemon (embed-daemon.ts) holds the single model instance.
+ * The embedding daemon (exe-daemon.ts) holds the single model instance.
  * This worker just sends text over a Unix socket — no model loading,
  * no GPU allocation, no file locks.
  *
