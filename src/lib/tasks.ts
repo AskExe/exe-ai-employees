@@ -15,6 +15,8 @@ export interface Task {
   status: "open" | "in_progress" | "done";
   createdAt: string;
   updatedAt: string;
+  /** Set when a near-duplicate active task already exists for the same assignee. */
+  warning?: string;
 }
 
 function rowToTask(row: Record<string, unknown>): Task {
@@ -36,13 +38,23 @@ export async function createTask(opts: {
   const id = crypto.randomUUID();
   const now = new Date().toISOString();
 
+  // Check for duplicate active task (same title + assignee)
+  let warning: string | undefined;
+  const dupCheck = await client.execute({
+    sql: "SELECT id FROM tasks WHERE title = ? AND assigned_to = ? AND status IN ('open', 'in_progress')",
+    args: [opts.title, opts.assignedTo],
+  });
+  if (dupCheck.rows.length > 0) {
+    warning = `similar active task already exists (${String(dupCheck.rows[0]!.id)}). Created new task anyway.`;
+  }
+
   await client.execute({
     sql: `INSERT INTO tasks (id, title, assigned_to, assigned_by, project_name, priority, status, created_at, updated_at)
           VALUES (?, ?, ?, 'exe', '', 'p1', 'open', ?, ?)`,
     args: [id, opts.title, opts.assignedTo, now, now],
   });
 
-  return { id, title: opts.title, assignedTo: opts.assignedTo, status: "open", createdAt: now, updatedAt: now };
+  return { id, title: opts.title, assignedTo: opts.assignedTo, status: "open", createdAt: now, updatedAt: now, warning };
 }
 
 export async function listTasks(opts?: {

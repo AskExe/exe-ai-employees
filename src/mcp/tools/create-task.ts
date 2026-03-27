@@ -24,11 +24,16 @@ export function registerCreateTask(server: McpServer): void {
     async ({ title, assigned_to }) => {
       const task = await createTask({ title, assignedTo: assigned_to });
 
+      let text = `Task created: "${task.title}" → ${task.assignedTo}\nID: ${task.id}`;
+      if (task.warning) {
+        text += `\nWarning: ${task.warning}`;
+      }
+
       return {
         content: [
           {
             type: "text" as const,
-            text: `Task created: "${task.title}" → ${task.assignedTo}\nID: ${task.id}`,
+            text,
           },
         ],
       };
