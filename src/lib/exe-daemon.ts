@@ -19,7 +19,7 @@
  */
 
 import net from "node:net";
-import { writeFileSync, unlinkSync, mkdirSync, existsSync } from "node:fs";
+import { writeFileSync, readFileSync, unlinkSync, mkdirSync, existsSync } from "node:fs";
 import path from "node:path";
 import { getLlama, type LlamaModel, type LlamaEmbeddingContext } from "node-llama-cpp";
 import { MODELS_DIR, EXE_AI_DIR } from "./config.js";
@@ -29,8 +29,8 @@ import { EMBEDDING_DIM } from "../types/memory.js";
 // Config
 // ---------------------------------------------------------------------------
 
-const SOCKET_PATH = process.env.EXE_EMBED_SOCK ?? path.join(EXE_AI_DIR, "exed.sock");
-const PID_PATH = process.env.EXE_EMBED_PID ?? path.join(EXE_AI_DIR, "exed.pid");
+const SOCKET_PATH = process.env.EXE_DAEMON_SOCK ?? process.env.EXE_EMBED_SOCK ?? path.join(EXE_AI_DIR, "exed.sock");
+const PID_PATH = process.env.EXE_DAEMON_PID ?? process.env.EXE_EMBED_PID ?? path.join(EXE_AI_DIR, "exed.pid");
 const MODEL_FILE = "jina-embeddings-v5-small-q4_k_m.gguf";
 const IDLE_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes — longer to avoid cold starts during active sessions
 
@@ -218,6 +218,18 @@ async function handleHealthCheck(socket: net.Socket, requestId: string): Promise
 
 function startServer(): void {
   mkdirSync(path.dirname(SOCKET_PATH), { recursive: true });
+
+  // Migration: clean up old embed-daemon files
+  for (const oldFile of ["embed.sock", "embed.pid"]) {
+    const oldPath = path.join(path.dirname(SOCKET_PATH), oldFile);
+    try {
+      if (oldFile.endsWith(".pid")) {
+        const pid = parseInt(readFileSync(oldPath, "utf8").trim(), 10);
+        if (pid > 0) try { process.kill(pid, "SIGKILL"); } catch { /* already dead */ }
+      }
+      unlinkSync(oldPath);
+    } catch { /* not present */ }
+  }
 
   // Remove stale socket if exists
   try { unlinkSync(SOCKET_PATH); } catch { /* not present */ }

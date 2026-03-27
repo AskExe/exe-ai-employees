@@ -19,8 +19,8 @@ import { EXE_AI_DIR } from "./config.js";
 // Config
 // ---------------------------------------------------------------------------
 
-const SOCKET_PATH = process.env.EXE_EMBED_SOCK ?? path.join(EXE_AI_DIR, "exed.sock");
-const PID_PATH = process.env.EXE_EMBED_PID ?? path.join(EXE_AI_DIR, "exed.pid");
+const SOCKET_PATH = process.env.EXE_DAEMON_SOCK ?? process.env.EXE_EMBED_SOCK ?? path.join(EXE_AI_DIR, "exed.sock");
+const PID_PATH = process.env.EXE_DAEMON_PID ?? process.env.EXE_EMBED_PID ?? path.join(EXE_AI_DIR, "exed.pid");
 const SPAWN_LOCK_PATH = path.join(EXE_AI_DIR, "exed-spawn.lock");
 const SPAWN_LOCK_STALE_MS = 30_000; // Lock older than 30s is considered stale
 const CONNECT_TIMEOUT_MS = 15_000; // Max wait for daemon cold start
@@ -134,8 +134,8 @@ function spawnDaemon(): void {
     stdio: ["ignore", "ignore", stderrFd],
     env: {
       ...process.env,
-      EXE_EMBED_SOCK: SOCKET_PATH,
-      EXE_EMBED_PID: PID_PATH,
+      EXE_DAEMON_SOCK: SOCKET_PATH,
+      EXE_DAEMON_PID: PID_PATH,
     },
   });
 
