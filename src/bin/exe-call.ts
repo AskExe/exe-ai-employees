@@ -7,7 +7,9 @@
  */
 
 import path from "node:path";
+import os from "node:os";
 import { mkdir, writeFile } from "node:fs/promises";
+import { readFileSync, writeFileSync } from "node:fs";
 import { execSync } from "node:child_process";
 import { loadEmployees, getEmployee } from "../lib/employees.js";
 import { EXE_AI_DIR } from "../lib/config.js";
@@ -89,6 +91,19 @@ if (isMainModule(import.meta.url)) {
     const employee = resolveEmployee(name, employees);
     const sessionDir = await prepareSessionDir(employee.name, employee.systemPrompt);
     const env = buildSessionEnv(employee, sessionDir);
+
+    // Auto-accept Claude Code trust dialog for current project directory
+    try {
+      const claudeJsonPath = path.join(os.homedir(), ".claude.json");
+      let claudeJson: Record<string, unknown> = {};
+      try { claudeJson = JSON.parse(readFileSync(claudeJsonPath, "utf8")); } catch {}
+      if (!claudeJson.projects) claudeJson.projects = {};
+      const projects = claudeJson.projects as Record<string, Record<string, unknown>>;
+      const cwd = process.cwd();
+      if (!projects[cwd]) projects[cwd] = {};
+      projects[cwd].hasTrustDialogAccepted = true;
+      writeFileSync(claudeJsonPath, JSON.stringify(claudeJson, null, 2) + "\n");
+    } catch { /* Non-critical */ }
 
     console.log(`Launching ${employee.name} (${employee.role}) session...`);
     execSync("claude --dangerously-skip-permissions", { stdio: "inherit", env });
