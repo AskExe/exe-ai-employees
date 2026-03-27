@@ -1,4 +1,4 @@
-# exe-ai-employees
+# Exe-AI-Employees
 
 ![npm version](https://img.shields.io/npm/v/exe-ai-employees) ![GitHub stars](https://img.shields.io/github/stars/AskExe/exe-ai-employees) ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white) ![License: MIT](https://img.shields.io/badge/license-MIT-green.svg) ![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen?logo=node.js&logoColor=white) ![MCP](https://img.shields.io/badge/protocol-MCP-8B5CF6) ![Local-first](https://img.shields.io/badge/local--first-yes-00C9A7)
 
@@ -19,29 +19,27 @@ exe-ai-employees gives you a team of AI employees — each with their own role, 
 
 ## Table of contents
 
-- [Who this is for](#who-this-is-for)
-- [Who this is NOT for](#who-this-is-not-for)
-- [Why this matters](#why-this-matters)
-- [Build your team](#build-your-team)
-- [What it does](#what-it-does)
-- [How exe compares](#how-exe-ai-employees-compares)
-- [Install](#install)
-- [Quick start (5 minutes)](#quick-start-5-minutes)
-- [How it works](#how-it-works)
-- [Encryption](#encryption)
-- [Exe Cloud](#exe-cloud--take-your-ai-employees-anywhere)
-- [Search model](#search-model)
-- [MCP tools](#mcp-tools)
-- [Architecture decisions](#architecture-decisions)
-- [Common questions](#common-questions)
-- [Requirements](#requirements)
-- [Recommended terminal](#recommended-terminal)
-- [tmux guide](#tmux--your-agent-session-manager)
-- [Commands](#commands)
-- [Exe OS — the bigger picture](#exe-os--the-bigger-picture)
-- [Development](#development)
-- [Contributing](#contributing)
-- [Community](#community)
+**[1. Why This Repo](#1-why-this-repo)** — Who it's for, what it does, how it compares
+
+- [Who this is for](#who-this-is-for) | [Who this is NOT for](#who-this-is-not-for) | [Why this matters](#why-this-matters) | [Build your team](#build-your-team) | [What it does](#what-it-does) | [How exe compares](#how-exe-ai-employees-compares)
+
+**[2. How to Set Up](#2-how-to-set-up)** — Install, quick start, tools, terminal
+
+- [Install](#install) | [Quick start](#quick-start-5-minutes) | [How it works](#how-it-works) | [Commands](#commands) | [MCP tools](#mcp-tools) | [Recommended terminal](#recommended-terminal) | [tmux guide](#tmux--your-agent-session-manager)
+
+**[3. Architecture & Tradeoffs](#3-architecture--tradeoffs)** — Design decisions, encryption, search, sync
+
+- [Architecture decisions](#architecture-decisions) | [Encryption](#encryption) | [Search model](#search-model) | [Exe Cloud](#exe-cloud--take-your-ai-employees-anywhere)
+
+**[4. Prerequisites](#4-prerequisites)** — What you need before installing
+
+**[5. Future of Exe](#5-future-of-exe)** — Exe OS vision, roadmap, community
+
+- [Exe OS](#exe-os--the-bigger-picture) | [Contributing](#contributing) | [Community](#community)
+
+---
+
+# 1. Why This Repo
 
 ---
 
@@ -266,6 +264,10 @@ Other tools give your agents brains. exe-ai-employees gives them a **memory**.
 
 ---
 
+# 2. How to Set Up
+
+---
+
 ## Install
 
 ```bash
@@ -276,6 +278,8 @@ exe-ai-employees --global
 Two commands. The installer registers hooks, search tools, and slash commands into Claude Code.
 
 On your first session, run `/exe:setup` inside Claude Code to generate your encryption key and download the search model (~397MB, runs locally).
+
+---
 
 ## Quick start (5 minutes)
 
@@ -332,105 +336,14 @@ Your AI employee responds with full history from prior sessions
 
 ---
 
-## Encryption
+## Commands
 
-Your data is encrypted at every layer. This isn't optional — it's the default.
-
-| Layer | Method | What it protects |
-|-------|--------|-----------------|
-| **At rest** | SQLCipher (page-level database encryption) | All memories stored on disk |
-| **Field-level** | AES-256-GCM | Individual memory content before storage |
-| **Key backup** | BIP39 24-word mnemonic | Portable key recovery across devices |
-| **Key storage** | System keychain (macOS Keychain, GNOME Keyring, Windows Credential Vault) | Master key never stored in config files |
-| **Cloud sync** | Zero-knowledge AES-256-GCM | Data encrypted client-side before sync — server never sees plaintext |
-
-Your master encryption key is generated during `/exe:setup` and stored in your system keychain. To move your team to another machine, export a 24-word BIP39 mnemonic phrase and import it on the new device. The sync server (Turso) only ever receives encrypted blobs.
-
----
-
-## Exe Cloud — take your AI employees anywhere
-
-Your AI employees shouldn't be locked to one machine. Exe Cloud syncs your entire team's memory across all your devices — laptop, desktop, VPS — with end-to-end encryption. Work on your MacBook at the cafe, switch to your desktop at home, and your AI CTO remembers everything from both machines.
-
-### How it works
-
-```
-UPLOAD (Machine A → Cloud)              DOWNLOAD (Cloud → Machine B)
-
-Raw memory data                         Encrypted+compressed blob
-    │                                       │
-    ▼                                       ▼
-Compress (Brotli, ~3-5x smaller)        Decrypt (AES-256-GCM)
-    │                                       │
-    ▼                                       ▼
-Encrypt (AES-256-GCM)                   Decompress (Brotli)
-    │                                       │
-    ▼                                       ▼
-Upload encrypted blob ───────────►      Raw memory data available
-                      Exe Cloud
-              (stores only encrypted
-               blobs it cannot read)
-```
-
-**Why compress then encrypt (order matters):** Encrypted data is random noise — compression can't reduce it. Plaintext (code, error messages, tool outputs) compresses 3-5x with Brotli. Compressing first while the data has structure, then encrypting the result, saves ~70% storage and bandwidth. The server stores blobs it can neither read nor inflate.
-
-### Setup
-
-One command on each machine:
-
-```bash
-# First machine — already set up:
-/exe:cloud           # enables sync, shows your mnemonic
-
-# Second machine — new install:
-/exe:setup           # paste your 24-word mnemonic when prompted
-/exe:cloud           # connects to sync
-```
-
-Your 24-word BIP39 mnemonic is the only thing you move between machines. It derives your encryption key. The cloud server never has it.
-
-### What syncs
-
-- All employee memories (tool calls, errors, sessions)
-- Behavioral rules (corrections and patterns)
-- Task history and status
-
-What does NOT sync: the embedding model (downloaded fresh on each machine), your system keychain entry (derived from the mnemonic), and local session cache.
-
-### Pricing
-
-**Local-only is always free.** You can use exe-ai-employees without cloud sync forever. Your data stays on your machine. Nothing changes.
-
-**Exe Cloud** is a managed sync service for users who work across multiple devices. Currently in development — sign up for early access at [askexe.com](https://askexe.com).
-
----
-
-## Search model
-
-Semantic search is powered by an AI embedding model that runs entirely on your machine.
-
-| Spec | Detail |
-|------|--------|
-| **Model** | Jina Embeddings v5 Small |
-| **Format** | Q4_K_M quantized GGUF |
-| **Download size** | ~397MB |
-| **Vector dimensions** | 1024 |
-| **Inference** | node-llama-cpp with Metal acceleration (Mac) or CPU fallback (Linux) |
-| **API calls** | None — fully local, zero data sent anywhere |
-| **Usage fees** | None |
-
-The model loads once when the MCP server starts and stays warm for the entire session. First query cold-start takes 3-8 seconds. Subsequent queries take ~200ms.
-
-### Hardware compatibility
-
-| RAM | Experience | Notes |
-|-----|-----------|-------|
-| 4GB | Not recommended | Model uses ~500MB. Limited headroom for Claude Code + OS. |
-| 8GB | Works | Comfortable for model + Claude Code. Good for VPS deployments. |
-| 16GB | Smooth | Plenty of headroom. Recommended for local development. |
-| 32GB+ | Ideal | Multiple employees, fast embeddings, no constraints. |
-
-The model uses approximately 500MB of RAM when loaded. Mac users with Apple Silicon get Metal GPU acceleration automatically. Linux and Intel Mac users run on CPU — still fast for search queries.
+| Command | What it does |
+|---------|-------------|
+| `/exe:setup` | First-time setup — encryption key + search model |
+| `/exe:search "query"` | Search your employees' memories |
+| `/exe:settings` | Toggle memory capture, search modes, sync |
+| `/exe:cloud` | Set up encrypted sync between machines |
 
 ---
 
@@ -451,6 +364,96 @@ The installer registers an MCP server that Claude Code starts automatically. The
 | `send_message` | Send a message to another employee's session — cross-agent coordination |
 
 Hooks handle memory capture automatically (passive). MCP tools give employees active control — search on demand, store insights, manage work, coordinate with colleagues.
+
+---
+
+## Recommended terminal
+
+exe-ai-employees works in any terminal. We recommend **[Ghostty](https://ghostty.org)** for the best experience.
+
+### Why Ghostty
+
+- **GPU-accelerated rendering** — AI agents stream output constantly. Ghostty uses the GPU for rendering, so there's no lag, no dropped frames, and smooth scrolling through large outputs. CPU-based terminals struggle under sustained output.
+- **Native, not Electron** — first-class macOS and Linux support. Low memory footprint compared to web-based terminals.
+- **tmux integration** — works seamlessly with tmux, which exe-ai-employees uses for persistent agent sessions.
+- **Great defaults** — font rendering, color accuracy, and keybindings work out of the box without fiddling.
+- **Open source** — MIT licensed, built by Mitchell Hashimoto (HashiCorp founder), actively developed.
+
+### Included config
+
+We ship a recommended Ghostty config at `config/ghostty.config` — dark theme matching the Exe AI brand (night blue-black, purple accents), optimized for Claude Code and tmux agent workflows. Install:
+
+```bash
+cp config/ghostty.config ~/.config/ghostty/config
+```
+
+### Keybindings for agent workflows
+
+Every keybinding in the config is designed for managing multiple AI employees simultaneously:
+
+| Keybinding | Action | Why it matters for AI employees |
+|---|---|---|
+| `Cmd+D` | Split pane right | Open a parallel agent session side-by-side |
+| `Cmd+Shift+D` | Split pane down | Stack agent output vertically for comparison |
+| `Cmd+W` | Close pane | Kill a finished agent's pane without leaving the terminal |
+| `Cmd+T` | New tmux tab | Launch another employee in a new tab |
+| `Cmd+1-9` | Switch tmux tabs | Jump between employees instantly — Cmd+1 for exe, Cmd+2 for yoshi |
+| `Cmd+Shift+[/]` | Previous/next tab | Cycle through active employee sessions |
+| `Cmd+Shift+Enter` | Zoom pane | Focus on one agent's full output — expand to fill the terminal |
+| `Cmd+K` | Clear screen | Clean slate between tasks |
+| `Cmd+F` | Search scrollback | Find specific output in an agent's history |
+| `Cmd+Ctrl+Arrows` | Resize splits | Adjust how much space each agent gets on screen |
+| `Cmd+Ctrl+=` | Equalize splits | Give all visible agents equal screen space |
+
+### Alternatives
+
+iTerm2, Warp, Alacritty, the default macOS Terminal, or VS Code's integrated terminal all work. Ghostty is recommended, not required.
+
+---
+
+## tmux — your agent session manager
+
+tmux is a terminal multiplexer — it lets you run multiple terminal sessions inside one window and keeps them alive even when you close the terminal. It's a core Unix tool, battle-tested for decades. For AI employees, tmux means:
+
+- Your employees keep working even if you close the terminal
+- Multiple employees run simultaneously in separate sessions
+- You can attach to any employee's session to watch them work, then detach and let them continue
+
+tmux is quirky for newcomers, but once you know 5 shortcuts it becomes your best friend. Here's everything you need:
+
+### Essential shortcuts
+
+All tmux shortcuts start with `Ctrl+B` (the prefix key), then a second key:
+
+| Shortcut | What it does | When you need it |
+|----------|-------------|-----------------|
+| `Ctrl+B`, then `D` | Detach from session | Leave the employee working in the background |
+| `Ctrl+B`, then `[` | Enter scroll/copy mode | Scroll up to see past output |
+| `q` or `Esc` | Exit copy mode | **Stuck? Press q.** This is the #1 gotcha. |
+| `Ctrl+B`, then `S` | Session picker | See all running employee sessions, arrow to select |
+| `Ctrl+B`, then `W` | Window picker | Same but shows windows too |
+| `Ctrl+B`, then `C` | New window | Create a new window in current session |
+| `Ctrl+B`, then `N` / `P` | Next / previous window | Cycle between windows |
+
+### Common gotchas
+
+**"My terminal is frozen / nothing I type works"**
+You're in copy mode. Press `q` or `Esc` to exit. This catches everyone the first time.
+
+**"I closed my terminal and lost my employees"**
+You didn't. They're still running. Open a new terminal and run `tmux list-sessions` to see them, then `tmux attach -t session-name` to reconnect.
+
+**"I see `[detached]` — is my employee dead?"**
+No. You just detached. The employee is still running in the background. Reattach with `tmux attach -t session-name`.
+
+**"How do I scroll up?"**
+`Ctrl+B`, then `[` enters scroll mode. Use arrow keys or Page Up/Down. Press `q` to exit.
+
+Full tmux reference: [tmuxcheatsheet.com](https://tmuxcheatsheet.com)
+
+---
+
+# 3. Architecture & Tradeoffs
 
 ---
 
@@ -560,6 +563,108 @@ This is different from fire-and-forget systems where a crash means lost work. If
 
 ---
 
+## Encryption
+
+Your data is encrypted at every layer. This isn't optional — it's the default.
+
+| Layer | Method | What it protects |
+|-------|--------|-----------------|
+| **At rest** | SQLCipher (page-level database encryption) | All memories stored on disk |
+| **Field-level** | AES-256-GCM | Individual memory content before storage |
+| **Key backup** | BIP39 24-word mnemonic | Portable key recovery across devices |
+| **Key storage** | System keychain (macOS Keychain, GNOME Keyring, Windows Credential Vault) | Master key never stored in config files |
+| **Cloud sync** | Zero-knowledge AES-256-GCM | Data encrypted client-side before sync — server never sees plaintext |
+
+Your master encryption key is generated during `/exe:setup` and stored in your system keychain. To move your team to another machine, export a 24-word BIP39 mnemonic phrase and import it on the new device. The sync server (Turso) only ever receives encrypted blobs.
+
+---
+
+## Search model
+
+Semantic search is powered by an AI embedding model that runs entirely on your machine.
+
+| Spec | Detail |
+|------|--------|
+| **Model** | Jina Embeddings v5 Small |
+| **Format** | Q4_K_M quantized GGUF |
+| **Download size** | ~397MB |
+| **Vector dimensions** | 1024 |
+| **Inference** | node-llama-cpp with Metal acceleration (Mac) or CPU fallback (Linux) |
+| **API calls** | None — fully local, zero data sent anywhere |
+| **Usage fees** | None |
+
+The model loads once when the MCP server starts and stays warm for the entire session. First query cold-start takes 3-8 seconds. Subsequent queries take ~200ms.
+
+### Hardware compatibility
+
+| RAM | Experience | Notes |
+|-----|-----------|-------|
+| 4GB | Not recommended | Model uses ~500MB. Limited headroom for Claude Code + OS. |
+| 8GB | Works | Comfortable for model + Claude Code. Good for VPS deployments. |
+| 16GB | Smooth | Plenty of headroom. Recommended for local development. |
+| 32GB+ | Ideal | Multiple employees, fast embeddings, no constraints. |
+
+The model uses approximately 500MB of RAM when loaded. Mac users with Apple Silicon get Metal GPU acceleration automatically. Linux and Intel Mac users run on CPU — still fast for search queries.
+
+---
+
+## Exe Cloud — take your AI employees anywhere
+
+Your AI employees shouldn't be locked to one machine. Exe Cloud syncs your entire team's memory across all your devices — laptop, desktop, VPS — with end-to-end encryption. Work on your MacBook at the cafe, switch to your desktop at home, and your AI CTO remembers everything from both machines.
+
+### How it works
+
+```
+UPLOAD (Machine A → Cloud)              DOWNLOAD (Cloud → Machine B)
+
+Raw memory data                         Encrypted+compressed blob
+    │                                       │
+    ▼                                       ▼
+Compress (Brotli, ~3-5x smaller)        Decrypt (AES-256-GCM)
+    │                                       │
+    ▼                                       ▼
+Encrypt (AES-256-GCM)                   Decompress (Brotli)
+    │                                       │
+    ▼                                       ▼
+Upload encrypted blob ───────────►      Raw memory data available
+                      Exe Cloud
+              (stores only encrypted
+               blobs it cannot read)
+```
+
+**Why compress then encrypt (order matters):** Encrypted data is random noise — compression can't reduce it. Plaintext (code, error messages, tool outputs) compresses 3-5x with Brotli. Compressing first while the data has structure, then encrypting the result, saves ~70% storage and bandwidth. The server stores blobs it can neither read nor inflate.
+
+### Setup
+
+One command on each machine:
+
+```bash
+# First machine — already set up:
+/exe:cloud           # enables sync, shows your mnemonic
+
+# Second machine — new install:
+/exe:setup           # paste your 24-word mnemonic when prompted
+/exe:cloud           # connects to sync
+```
+
+Your 24-word BIP39 mnemonic is the only thing you move between machines. It derives your encryption key. The cloud server never has it.
+
+### What syncs
+
+- All employee memories (tool calls, errors, sessions)
+- Behavioral rules (corrections and patterns)
+- Task history and status
+
+What does NOT sync: the embedding model (downloaded fresh on each machine), your system keychain entry (derived from the mnemonic), and local session cache.
+
+### Pricing
+
+**Local-only is always free.** You can use exe-ai-employees without cloud sync forever. Your data stays on your machine. Nothing changes.
+
+**Exe Cloud** is a managed sync service for users who work across multiple devices. Currently in development — sign up for early access at [askexe.com](https://askexe.com).
+
+---
+
 ## Common questions
 
 **How is this different from Claude Code's built-in memory?**
@@ -582,108 +687,36 @@ The embedding model is ~397MB. Memory database size depends on usage — roughly
 
 ---
 
-## Requirements
-
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI
-- Node.js 18 or later
-- 8GB+ RAM recommended
+# 4. Prerequisites
 
 ---
 
-## Recommended terminal
+| Requirement | Details |
+|-------------|---------|
+| **Claude Code** | [Install Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI |
+| **Node.js** | Version 18 or later |
+| **RAM** | 8GB+ recommended (model uses ~500MB) |
+| **tmux** | Required for persistent agent sessions |
+| **OS** | macOS or Linux |
 
-exe-ai-employees works in any terminal. We recommend **[Ghostty](https://ghostty.org)** for the best experience.
-
-### Why Ghostty
-
-- **GPU-accelerated rendering** — AI agents stream output constantly. Ghostty uses the GPU for rendering, so there's no lag, no dropped frames, and smooth scrolling through large outputs. CPU-based terminals struggle under sustained output.
-- **Native, not Electron** — first-class macOS and Linux support. Low memory footprint compared to web-based terminals.
-- **tmux integration** — works seamlessly with tmux, which exe-ai-employees uses for persistent agent sessions.
-- **Great defaults** — font rendering, color accuracy, and keybindings work out of the box without fiddling.
-- **Open source** — MIT licensed, built by Mitchell Hashimoto (HashiCorp founder), actively developed.
-
-### Included config
-
-We ship a recommended Ghostty config at `config/ghostty.config` — dark theme matching the Exe AI brand (night blue-black, purple accents), optimized for Claude Code and tmux agent workflows. Install:
+### Installing tmux
 
 ```bash
-cp config/ghostty.config ~/.config/ghostty/config
+# macOS
+brew install tmux
+
+# Ubuntu / Debian
+apt install tmux
+
+# Verify
+tmux -V
 ```
 
-### Keybindings for agent workflows
-
-Every keybinding in the config is designed for managing multiple AI employees simultaneously:
-
-| Keybinding | Action | Why it matters for AI employees |
-|---|---|---|
-| `Cmd+D` | Split pane right | Open a parallel agent session side-by-side |
-| `Cmd+Shift+D` | Split pane down | Stack agent output vertically for comparison |
-| `Cmd+W` | Close pane | Kill a finished agent's pane without leaving the terminal |
-| `Cmd+T` | New tmux tab | Launch another employee in a new tab |
-| `Cmd+1-9` | Switch tmux tabs | Jump between employees instantly — Cmd+1 for exe, Cmd+2 for yoshi |
-| `Cmd+Shift+[/]` | Previous/next tab | Cycle through active employee sessions |
-| `Cmd+Shift+Enter` | Zoom pane | Focus on one agent's full output — expand to fill the terminal |
-| `Cmd+K` | Clear screen | Clean slate between tasks |
-| `Cmd+F` | Search scrollback | Find specific output in an agent's history |
-| `Cmd+Ctrl+Arrows` | Resize splits | Adjust how much space each agent gets on screen |
-| `Cmd+Ctrl+=` | Equalize splits | Give all visible agents equal screen space |
-
-### Alternatives
-
-iTerm2, Warp, Alacritty, the default macOS Terminal, or VS Code's integrated terminal all work. Ghostty is recommended, not required.
+New to tmux? See the [tmux guide](#tmux--your-agent-session-manager) above or visit [tmuxcheatsheet.com](https://tmuxcheatsheet.com).
 
 ---
 
-## tmux — your agent session manager
-
-tmux is a terminal multiplexer — it lets you run multiple terminal sessions inside one window and keeps them alive even when you close the terminal. It's a core Unix tool, battle-tested for decades. For AI employees, tmux means:
-
-- Your employees keep working even if you close the terminal
-- Multiple employees run simultaneously in separate sessions
-- You can attach to any employee's session to watch them work, then detach and let them continue
-
-tmux is quirky for newcomers, but once you know 5 shortcuts it becomes your best friend. Here's everything you need:
-
-### Essential shortcuts
-
-All tmux shortcuts start with `Ctrl+B` (the prefix key), then a second key:
-
-| Shortcut | What it does | When you need it |
-|----------|-------------|-----------------|
-| `Ctrl+B`, then `D` | Detach from session | Leave the employee working in the background |
-| `Ctrl+B`, then `[` | Enter scroll/copy mode | Scroll up to see past output |
-| `q` or `Esc` | Exit copy mode | **Stuck? Press q.** This is the #1 gotcha. |
-| `Ctrl+B`, then `S` | Session picker | See all running employee sessions, arrow to select |
-| `Ctrl+B`, then `W` | Window picker | Same but shows windows too |
-| `Ctrl+B`, then `C` | New window | Create a new window in current session |
-| `Ctrl+B`, then `N` / `P` | Next / previous window | Cycle between windows |
-
-### Common gotchas
-
-**"My terminal is frozen / nothing I type works"**
-You're in copy mode. Press `q` or `Esc` to exit. This catches everyone the first time.
-
-**"I closed my terminal and lost my employees"**
-You didn't. They're still running. Open a new terminal and run `tmux list-sessions` to see them, then `tmux attach -t session-name` to reconnect.
-
-**"I see `[detached]` — is my employee dead?"**
-No. You just detached. The employee is still running in the background. Reattach with `tmux attach -t session-name`.
-
-**"How do I scroll up?"**
-`Ctrl+B`, then `[` enters scroll mode. Use arrow keys or Page Up/Down. Press `q` to exit.
-
-Full tmux reference: [tmuxcheatsheet.com](https://tmuxcheatsheet.com)
-
----
-
-## Commands
-
-| Command | What it does |
-|---------|-------------|
-| `/exe:setup` | First-time setup — encryption key + search model |
-| `/exe:search "query"` | Search your employees' memories |
-| `/exe:settings` | Toggle memory capture, search modes, sync |
-| `/exe:cloud` | Set up encrypted sync between machines |
+# 5. Future of Exe
 
 ---
 
@@ -748,6 +781,8 @@ npm install
 npm run build
 npm test
 ```
+
+---
 
 ## Contributing
 
