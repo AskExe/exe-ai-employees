@@ -21,7 +21,7 @@ import {
   saveConfig,
 } from "./config.js";
 import { getMasterKey, setMasterKey, exportMnemonic } from "./keychain.js";
-import { downloadModel, LOCAL_FILENAME } from "./model-downloader.js";
+import { downloadModel } from "./model-downloader.js";
 import { loadEmployees, saveEmployees, addEmployee } from "./employees.js";
 import { DEFAULT_EXE, TEMPLATES } from "./employee-templates.js";
 import type { Employee } from "./employees.js";
@@ -102,7 +102,7 @@ export async function runSetupWizard(opts: SetupOptions = {}): Promise<void> {
 
       // Show recovery phrase
       try {
-        const mnemonic = await exportMnemonic();
+        const mnemonic = exportMnemonic(key);
         log("Your 24-word recovery phrase:");
         log("");
         log(`  ${mnemonic}`);
