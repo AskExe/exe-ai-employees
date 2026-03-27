@@ -300,7 +300,7 @@ export async function mergeHooks(
 export async function runInstaller(homeDir?: string): Promise<void> {
   const packageRoot = resolvePackageRoot();
 
-  process.stderr.write(`exe-mem installer v1.3.0\n`);
+  process.stderr.write(`exe-ai-employees installer v1.3.0\n`);
   process.stderr.write(`Package root: ${packageRoot}\n\n`);
 
   // Step 1: Copy slash commands
@@ -321,5 +321,6 @@ export async function runInstaller(homeDir?: string): Promise<void> {
     `Hooks: ${hookResult.added} added, ${hookResult.skipped} unchanged\n`,
   );
 
-  process.stderr.write(`\nexe-mem installed successfully.\n`);
+  process.stderr.write(`\nexe-ai-employees installed successfully.\n`);
+  process.stderr.write(`Run /exe:setup inside Claude Code to complete first-time setup.\n`);
 }

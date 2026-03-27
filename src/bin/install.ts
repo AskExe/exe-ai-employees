@@ -10,7 +10,7 @@ if (args.includes("--commands-only")) {
     const result = await copySlashCommands(packageRoot);
     if (result.copied > 0) {
       process.stderr.write(
-        `exe-mem: ${result.copied} slash command(s) updated\n`,
+        `exe-ai-employees: ${result.copied} slash command(s) updated\n`,
       );
     }
   } catch {
@@ -27,9 +27,9 @@ if (args.includes("--commands-only")) {
     process.exit(1);
   }
 } else {
-  console.error("Usage: npx exe-mem --global");
+  console.error("Usage: exe-ai --global");
   console.error(
-    "  Installs exe-mem commands, MCP server, and hooks into ~/.claude/",
+    "  Installs exe-ai-employees commands, MCP server, and hooks into Claude Code",
   );
   process.exit(1);
 }

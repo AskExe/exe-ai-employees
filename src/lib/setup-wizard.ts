@@ -20,7 +20,7 @@ import {
   loadConfig,
   saveConfig,
 } from "./config.js";
-import { getMasterKey, setMasterKey } from "./keychain.js";
+import { getMasterKey, setMasterKey, exportMnemonic } from "./keychain.js";
 import { downloadModel, LOCAL_FILENAME } from "./model-downloader.js";
 import { loadEmployees, saveEmployees, addEmployee } from "./employees.js";
 import { DEFAULT_EXE, TEMPLATES } from "./employee-templates.js";
@@ -58,7 +58,7 @@ export async function validateModel(log: (msg: string) => void): Promise<void> {
   if (result.length !== 1024) {
     throw new Error(`Model produced ${result.length}-dim embeddings, expected 1024`);
   }
-  log("Model validation passed (1024-dim embeddings confirmed).");
+  log("Search model installed and working.");
 }
 
 /**
@@ -94,27 +94,40 @@ export async function runSetupWizard(opts: SetupOptions = {}): Promise<void> {
     if (existingKey) {
       log("Encryption key already exists — skipping generation.");
     } else {
-      log("Generating 256-bit encryption key...");
+      log("Generating encryption key...");
       const key = crypto.randomBytes(32);
       await setMasterKey(key);
       log("Encryption key generated and stored securely.");
+      log("");
+
+      // Show recovery phrase
+      try {
+        const mnemonic = await exportMnemonic();
+        log("Your 24-word recovery phrase:");
+        log("");
+        log(`  ${mnemonic}`);
+        log("");
+        log("Write this down and store it somewhere safe.");
+        log("You'll need it to set up on another machine or recover your data.");
+      } catch {
+        log("(Recovery phrase generation failed — you can export it later with /exe:link)");
+      }
     }
     log("");
 
     // Step 2: Sync configuration
-    log("How do you want to sync?");
+    log("How do you want to sync your memories?");
     log("");
-    log("  1. Exe Cloud (Coming Soon)");
-    log("     Zero-setup encrypted sync across machines.");
-    log("     Sign up at askexe.com to get notified when available.");
+    log("  1. Local only (Recommended)");
+    log("     No sync. Free forever. Your data stays on this machine.");
     log("");
-    log("  2. Local only (Recommended)");
-    log("     No sync. Free forever. You can add sync later.");
+    log("  2. Exe Cloud (Coming Soon)");
+    log("     Encrypted sync across machines. Sign up for early access at askexe.com.");
     log("");
 
     const syncChoice = await ask(rl, "Choose [1/2]: ");
 
-    if (syncChoice === "1") {
+    if (syncChoice === "2") {
       log("");
       log("Exe Cloud is coming soon!");
       log("Sign up at https://askexe.com for early access.");
@@ -126,7 +139,9 @@ export async function runSetupWizard(opts: SetupOptions = {}): Promise<void> {
 
     // Step 3: Download model (unless --skip-model)
     if (!skipModel) {
-      log("Note: jina-embeddings-v5-text-small is licensed CC-BY-NC-4.0 (non-commercial)");
+      log("Downloading the AI search model (~397MB, one-time download).");
+      log("This model runs locally to find relevant past work.");
+      log("The model license restricts commercial redistribution — using it for your own work is fine.");
       log("");
 
       await downloadModel({
@@ -208,13 +223,14 @@ export async function runSetupWizard(opts: SetupOptions = {}): Promise<void> {
     log("");
 
     // Step 7: Success summary
-    log("=== Setup Complete ===");
-    log("Database: " + config.dbPath);
-    log("Sync: local-only");
-    log("Encryption: SQLCipher (AES-256)");
-    if (!skipModel) {
-      log("Model: " + LOCAL_FILENAME);
-    }
+    log("Setup complete. Your memories are encrypted and stored locally.");
+    log("");
+    log("What to do next:");
+    log("  - Just use Claude Code normally — everything is recorded automatically");
+    log("  - Type /exe to meet your team coordinator");
+    log("  - Create employees with /exe:new-employee");
+    log("");
+    log("Your AI employees will start remembering from your very first session.");
     log("");
   } finally {
     rl.close();

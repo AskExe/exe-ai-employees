@@ -18,7 +18,7 @@ vi.mock("../../src/lib/keychain.js", () => ({
   getMasterKey: () => mockGetMasterKey(),
   setMasterKey: (key: Buffer) => mockSetMasterKey(key),
   deleteMasterKey: vi.fn().mockResolvedValue(undefined),
-  exportMnemonic: vi.fn(),
+  exportMnemonic: vi.fn().mockResolvedValue("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art"),
   importMnemonic: vi.fn(),
 }));
 
@@ -124,8 +124,8 @@ describe("setup-wizard v1.1", () => {
       expect(messages.join("\n")).toContain("already exists");
     });
 
-    it("local-only mode when user chooses option 2", async () => {
-      const rl = createMockReadline(["2", "", "", ""]);
+    it("local-only mode when user chooses option 1", async () => {
+      const rl = createMockReadline(["1", "", "", ""]);
       const messages: string[] = [];
 
       await runSetupWizard({
@@ -139,8 +139,8 @@ describe("setup-wizard v1.1", () => {
       expect(mockSaveConfig).toHaveBeenCalledOnce();
     });
 
-    it("Exe Cloud coming soon when user chooses option 1", async () => {
-      const rl = createMockReadline(["1", "", "", ""]);
+    it("Exe Cloud coming soon when user chooses option 2", async () => {
+      const rl = createMockReadline(["2", "", "", ""]);
       const messages: string[] = [];
 
       await runSetupWizard({
@@ -171,8 +171,8 @@ describe("setup-wizard v1.1", () => {
       expect(mockDownloadModel).toHaveBeenCalledOnce();
     });
 
-    it("prints encryption status in summary", async () => {
-      const rl = createMockReadline(["2", "", "", ""]);
+    it("prints friendly summary with next steps", async () => {
+      const rl = createMockReadline(["1", "", "", ""]);
       const messages: string[] = [];
 
       await runSetupWizard({
@@ -182,8 +182,9 @@ describe("setup-wizard v1.1", () => {
       });
 
       const output = messages.join("\n");
-      expect(output).toContain("AES-256");
-      expect(output).toContain("Setup Complete");
+      expect(output).toContain("Setup complete");
+      expect(output).toContain("encrypted");
+      expect(output).toContain("What to do next");
     });
   });
 });
