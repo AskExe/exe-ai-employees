@@ -45,9 +45,13 @@ export function registerRecallMyMemory(server: McpServer): void {
           .optional()
           .default(10)
           .describe("Max results to return"),
+        since: z
+          .string()
+          .optional()
+          .describe("ISO 8601 timestamp — only return memories at or after this time"),
       },
     },
-    async ({ query, project_name, has_error, tool_name, limit }) => {
+    async ({ query, project_name, has_error, tool_name, limit, since }) => {
       const { agentId } = getActiveAgent();
 
       const results = await hybridSearch(query, agentId, {
@@ -55,6 +59,7 @@ export function registerRecallMyMemory(server: McpServer): void {
         hasError: has_error,
         toolName: tool_name,
         limit,
+        since,
       });
 
       if (results.length === 0) {

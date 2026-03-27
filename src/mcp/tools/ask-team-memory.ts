@@ -37,13 +37,18 @@ export function registerAskTeamMemory(server: McpServer): void {
           .optional()
           .default(10)
           .describe("Max results to return"),
+        since: z
+          .string()
+          .optional()
+          .describe("ISO 8601 timestamp — only return memories at or after this time"),
       },
     },
-    async ({ team_member, query, project_name, limit }) => {
+    async ({ team_member, query, project_name, limit, since }) => {
       // Search the team member's partition, not the querying agent's
       const results = await hybridSearch(query, team_member, {
         projectName: project_name,
         limit,
+        since,
       });
 
       if (results.length === 0) {

@@ -206,6 +206,11 @@ async function ftsQuery(
     args.push(options.hasError ? 1 : 0);
   }
 
+  if (options?.since) {
+    sql += ` AND m.timestamp >= ?`;
+    args.push(options.since);
+  }
+
   sql += ` ORDER BY rank LIMIT ?`;
   args.push(limit);
 
@@ -259,6 +264,11 @@ async function recentRecords(
   if (options?.hasError !== undefined) {
     sql += ` AND has_error = ?`;
     args.push(options.hasError ? 1 : 0);
+  }
+
+  if (options?.since) {
+    sql += ` AND timestamp >= ?`;
+    args.push(options.since);
   }
 
   sql += ` ORDER BY timestamp DESC LIMIT ?`;

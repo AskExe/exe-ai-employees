@@ -195,6 +195,7 @@ export interface SearchOptions {
   hasError?: boolean;
   toolName?: string;
   limit?: number;
+  since?: string; // ISO 8601 — filter to memories at or after this timestamp
 }
 
 /**
@@ -235,6 +236,11 @@ export async function searchMemories(
   if (options?.hasError !== undefined) {
     sql += ` AND has_error = ?`;
     args.push(options.hasError ? 1 : 0);
+  }
+
+  if (options?.since) {
+    sql += ` AND timestamp >= ?`;
+    args.push(options.since);
   }
 
   sql += ` ORDER BY vector_distance_cos(vector, vector32(?))`;
