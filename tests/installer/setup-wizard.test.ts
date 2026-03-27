@@ -26,6 +26,7 @@ vi.mock("../../src/lib/keychain.js", () => ({
 let mockExeAiDir = "";
 const mockLoadConfig = vi.fn();
 const mockSaveConfig = vi.fn();
+const mockLoadConfigSync = vi.fn().mockReturnValue({ autoIngestion: true, autoRetrieval: true });
 
 vi.mock("../../src/lib/config.js", () => ({
   get EXE_AI_DIR() { return mockExeAiDir; },
@@ -33,7 +34,18 @@ vi.mock("../../src/lib/config.js", () => ({
   get LEGACY_LANCE_PATH() { return path.join(mockExeAiDir, "local.lance"); },
   get CONFIG_PATH() { return path.join(mockExeAiDir, "config.json"); },
   loadConfig: () => mockLoadConfig(),
+  loadConfigSync: () => mockLoadConfigSync(),
   saveConfig: (config: unknown) => mockSaveConfig(config),
+}));
+
+// Mock employees to avoid real filesystem access
+const mockLoadEmployees = vi.fn();
+const mockSaveEmployees = vi.fn();
+vi.mock("../../src/lib/employees.js", () => ({
+  loadEmployees: () => mockLoadEmployees(),
+  saveEmployees: (employees: unknown) => mockSaveEmployees(employees),
+  addEmployee: (employees: unknown[], employee: unknown) => [...(employees as unknown[]), employee],
+  getEmployee: (employees: unknown[], name: string) => (employees as Array<{ name: string }>).find(e => e.name === name),
 }));
 
 import { runSetupWizard } from "../../src/lib/setup-wizard.js";
@@ -69,6 +81,8 @@ describe("setup-wizard v1.1", () => {
     mockSaveConfig.mockResolvedValue(undefined);
     mockGetMasterKey.mockResolvedValue(null); // No key exists
     mockSetMasterKey.mockResolvedValue(undefined);
+    mockLoadEmployees.mockResolvedValue([{ name: "exe", role: "COO", systemPrompt: "test", createdAt: "2026-01-01T00:00:00.000Z" }]);
+    mockSaveEmployees.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -78,7 +92,7 @@ describe("setup-wizard v1.1", () => {
   describe("runSetupWizard", () => {
     it("generates master key when none exists", async () => {
       // Local-only mode (choose option 2)
-      const rl = createMockReadline(["2"]);
+      const rl = createMockReadline(["2", "", "", ""]);
       const messages: string[] = [];
 
       await runSetupWizard({
@@ -97,7 +111,7 @@ describe("setup-wizard v1.1", () => {
     it("skips key generation when key exists", async () => {
       mockGetMasterKey.mockResolvedValue(Buffer.alloc(32, 0xab));
 
-      const rl = createMockReadline(["2"]);
+      const rl = createMockReadline(["2", "", "", ""]);
       const messages: string[] = [];
 
       await runSetupWizard({
@@ -111,7 +125,7 @@ describe("setup-wizard v1.1", () => {
     });
 
     it("local-only mode when user chooses option 2", async () => {
-      const rl = createMockReadline(["2"]);
+      const rl = createMockReadline(["2", "", "", ""]);
       const messages: string[] = [];
 
       await runSetupWizard({
@@ -126,7 +140,7 @@ describe("setup-wizard v1.1", () => {
     });
 
     it("Exe Cloud coming soon when user chooses option 1", async () => {
-      const rl = createMockReadline(["1"]);
+      const rl = createMockReadline(["1", "", "", ""]);
       const messages: string[] = [];
 
       await runSetupWizard({
@@ -144,7 +158,7 @@ describe("setup-wizard v1.1", () => {
     it("downloads model when skipModel is false", async () => {
       mockDownloadModel.mockResolvedValue("/path/to/model.gguf");
 
-      const rl = createMockReadline(["2"]);
+      const rl = createMockReadline(["2", "", "", ""]);
       const messages: string[] = [];
 
       await runSetupWizard({
@@ -158,7 +172,7 @@ describe("setup-wizard v1.1", () => {
     });
 
     it("prints encryption status in summary", async () => {
-      const rl = createMockReadline(["2"]);
+      const rl = createMockReadline(["2", "", "", ""]);
       const messages: string[] = [];
 
       await runSetupWizard({

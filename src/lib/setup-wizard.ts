@@ -22,10 +22,14 @@ import {
 } from "./config.js";
 import { getMasterKey, setMasterKey } from "./keychain.js";
 import { downloadModel, LOCAL_FILENAME } from "./model-downloader.js";
+import { loadEmployees, saveEmployees, addEmployee } from "./employees.js";
+import { DEFAULT_EXE, TEMPLATES } from "./employee-templates.js";
+import type { Employee } from "./employees.js";
 
 export interface SetupOptions {
   skipModel?: boolean;
   skipModelValidation?: boolean;
+  skipEmployees?: boolean;
   createReadline?: () => ReadlineInterface;
   log?: (msg: string) => void;
 }
@@ -64,6 +68,7 @@ export async function runSetupWizard(opts: SetupOptions = {}): Promise<void> {
   const {
     skipModel = false,
     skipModelValidation = false,
+    skipEmployees = false,
     log = (msg: string) => process.stderr.write(msg + "\n"),
   } = opts;
 
@@ -142,12 +147,67 @@ export async function runSetupWizard(opts: SetupOptions = {}): Promise<void> {
       await validateModel(log);
     }
 
-    // Step 5: Save config
+    // Step 5: Set up your team
+    if (!skipEmployees) {
+      log("Set up your team");
+      log("");
+      log("exe-ai-employees ships with three specialist roles.");
+      log("Name them or press Enter to keep the defaults.");
+      log("");
+
+      const roles: Array<{ templateKey: string; role: string; defaultName: string }> = [
+        { templateKey: "yoshi", role: "CTO", defaultName: "yoshi" },
+        { templateKey: "tom", role: "Principal Engineer", defaultName: "tom" },
+        { templateKey: "mari", role: "CMO", defaultName: "mari" },
+      ];
+
+      let employees: Employee[] = [];
+      try {
+        employees = await loadEmployees();
+      } catch {
+        // No roster yet — start fresh with exe
+        employees = [DEFAULT_EXE];
+      }
+
+      // Ensure exe exists
+      if (!employees.some((e) => e.name === "exe")) {
+        employees = [DEFAULT_EXE, ...employees];
+      }
+
+      for (const { templateKey, role, defaultName } of roles) {
+        const name = await ask(rl, `  ${role} [${defaultName}]: `);
+        const chosenName = name || defaultName;
+        const template = TEMPLATES[templateKey]!;
+
+        // Replace the default name in the system prompt
+        const systemPrompt = template.systemPrompt.replace(
+          new RegExp(`\\b${defaultName}\\b`, "g"),
+          chosenName,
+        );
+
+        // Skip if already in roster
+        if (employees.some((e) => e.name === chosenName)) continue;
+
+        employees = addEmployee(employees, {
+          name: chosenName,
+          role,
+          systemPrompt,
+          createdAt: new Date().toISOString(),
+        });
+      }
+
+      await saveEmployees(employees);
+      log("");
+      log(`Team: ${employees.filter(e => e.name !== "exe").map(e => `${e.name} (${e.role})`).join(", ")}`);
+      log("");
+    }
+
+    // Step 6: Save config
     const config = await loadConfig();
     await saveConfig(config);
     log("");
 
-    // Step 6: Success summary
+    // Step 7: Success summary
     log("=== Setup Complete ===");
     log("Database: " + config.dbPath);
     log("Sync: local-only");
