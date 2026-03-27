@@ -141,7 +141,7 @@ exe-ai-employees is the most comprehensive open source memory, communication, an
 
 **1. Push-based communication** — the only open source system using push delivery (tmux `send-keys`). Tasks and messages arrive instantly in agent sessions. No heartbeat polling, no wasted tokens, no missed messages. Agents only wake when there's real work.
 
-**2. State-of-the-art memory and retrieval** — every tool call outcome is captured, embedded, and searchable. Not the full conversation (too noisy) — the outcomes: what was done, what was found, what broke, what worked. This selective storage makes retrieval precise.
+**2. State-of-the-art memory and retrieval** — every user prompt and tool call outcome is captured, embedded, and searchable. Not Claude's responses (no hook available) — the inputs and outcomes: what you asked, what was done, what was found, what broke, what worked. Auto-summaries every 25 tool calls compress longer sessions. This selective storage makes retrieval precise.
 
 The retrieval stack:
 
@@ -380,7 +380,7 @@ recall_my_memory("auth bug", since: "2026-03-26T00:00:00Z")
 ask_team_memory("yoshi", "what was built today", since: "2026-03-27T00:00:00Z")
 ```
 
-Use `get_session_context` when you need a window of memories around a specific point in time — useful for reconstructing what happened in a past session.
+**Conversation chain replay:** because user prompts are now stored alongside tool call outcomes, you can trace the full chain of intent → action → result. Search for a user prompt with `recall_my_memory`, then use `get_session_context` around that timestamp to see every tool call that followed. The complete sequence — what you asked, what the employee did, what it found — is searchable and replayable.
 
 ---
 
@@ -610,6 +610,7 @@ Every tool call that fires the ingest hook produces one memory record. What text
 | `Agent` | Prompt summary + output summary |
 | `store_memory` | The text passed to store (content over wrapper params) |
 | `store_behavior` | The behavioral rule text |
+| `UserPrompt` | The user's message text (prompts under 10 chars excluded) |
 
 Truncation at 8KB is intentional — embedding quality degrades on longer inputs, and the model's effective context is 8K tokens.
 
@@ -629,12 +630,13 @@ vector         — 1024-dim float32 (NULL if daemon unavailable at write time)
 
 **What does NOT get embedded:**
 
-- Claude's text responses (not tool calls)
+- Claude's text responses (no hook available for assistant output)
 - System prompt content
-- Conversation messages
 - Hook output injected as read-path context
 
-The memory system records **what the employee did** (tool calls), not **what they said**. Tool calls contain the ground truth: what files were read, what code was written, what commands ran.
+The memory system records **what you asked and what the employee did** — user prompts and tool call outcomes. Not Claude's responses, which aren't accessible via hooks.
+
+**Cloud sync coverage:** user prompts sync via Exe Cloud alongside all other memories — same E2E AES-256-GCM encryption, same sync pipeline. Everything the employee sees and acts on is portable across machines. Tool calls contain the ground truth: what files were read, what code was written, what commands ran.
 
 ---
 
