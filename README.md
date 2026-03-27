@@ -40,8 +40,11 @@ npm install -g exe-ai-employees && exe-ai-employees --global
 | **Cost optimization** | Ruflo | WASM bypass (<1ms, zero LLM cost), token compression, multi-model routing |
 | **Context organization** | OpenViking | Filesystem paradigm with tiered loading (L0/L1/L2) |
 | **Agent ecosystem size** | Ruflo | 100+ specialized agents vs our template system |
+| **Multi-LLM routing** | Agno | Any OpenAI-compatible endpoint per agent — swap Claude, OpenAI, Gemini, local |
+| **HITL / approval workflows** | Agno, OpenClaw | `@approval` decorator; time-bounded approval queues — we have no built-in HITL |
+| **Context compression** | Agno | CompressionManager: semantic distillation of tool outputs, not naive truncation |
 
-exe-ai-employees is the most accurate, secure, and complete memory system for AI employees available today. State-of-the-art hybrid retrieval, full encryption at rest, on-device embeddings with zero cloud dependency, and E2E encrypted sync across machines. No other open-source system combines all of these. Where we're not the best — orchestration complexity, context visualization, cost optimization — we chose simplicity and focus over feature breadth. Detailed comparisons with each competitor are in the [Architecture section](#how-exe-ai-employees-compares) below.
+exe-ai-employees is the most accurate, secure, and complete memory system for AI employees available today. State-of-the-art hybrid retrieval, full encryption at rest, on-device embeddings with zero cloud dependency, and E2E encrypted sync across machines. No other open-source system combines all of these. Where we're not the best — orchestration complexity, multi-LLM routing, context visualization, cost optimization, HITL, context compression — we chose simplicity and focus over feature breadth. Detailed comparisons with each competitor are in the [Architecture section](#how-exe-ai-employees-compares) below.
 
 ---
 
@@ -185,7 +188,7 @@ The retrieval stack:
 | **Isolation** | Per-employee memory partitions | No context pollution between roles |
 | **Security** | SQLCipher + AES-256-GCM | Encrypted at every layer, all local |
 
-No other open source agent system combines on-device embeddings, hybrid BM25/vector search, RRF fusion, per-agent segregation, and encrypted storage. Paperclip has no semantic search. Claude Peers has no memory at all. Agno's memory is session-scoped. OpenClaw has no embeddings.
+No other open source agent system combines on-device embeddings, hybrid BM25/vector search, RRF fusion, per-agent segregation, and encrypted storage. Paperclip has no semantic search. Claude Peers has no memory at all. Agno has persistent memory and semantic search but requires server deployment and is Python-only. OpenClaw has no embeddings.
 
 **3. Persistent identity** — each employee has behavioral rules that survive across sessions. When you correct an employee, the correction is stored permanently and applied automatically in every future session. Mistakes happen once, never twice. Each employee's memory is isolated — your engineer's debugging context doesn't pollute your marketing lead's search results.
 
@@ -212,7 +215,9 @@ The difference: push is walking over to someone's desk and tapping them on the s
 | **Behavioral learning** | None | Persistent corrections across sessions |
 | **Runtime** | Bun required | Node.js (universal) |
 
-Claude Peers works when the user is actively talking to agents. It breaks down when agents need to coordinate autonomously — which is the whole point of having a team.
+**What Claude Peers does well:** lightweight setup, zero infrastructure, and an MCP-native design that works in any Claude Code session without tmux. If you just need agents to exchange messages during an active session, Claude Peers is simpler to get running.
+
+**What we chose differently:** push delivery so agents wake autonomously, persistent memory per employee, encryption, and behavioral learning. For solo founders running employees as background workers, push architecture is the difference between coordination that works and coordination that requires hand-holding.
 
 ---
 
@@ -261,12 +266,14 @@ OpenClaw is a multi-channel personal AI assistant — WhatsApp, Slack, Discord, 
 | | OpenClaw | exe-ai-employees |
 |---|---|---|
 | **Architecture** | Gateway server required | Fully local, zero infrastructure |
-| **Channels** | 22+ (WhatsApp, Slack, Discord, etc.) | Terminal (multi-channel on roadmap) |
+| **Channels** | WhatsApp, Slack, Discord, Telegram, and others | Terminal (multi-channel on roadmap) |
 | **Memory** | No persistent cross-session memory | Automatic capture + semantic search |
 | **Agents** | Single personal assistant | Multi-agent team with roles |
 | **Behavioral learning** | None | Persistent corrections |
 
-**What OpenClaw has that we're adding:** multi-channel communication. Slack, Discord, and WhatsApp integration is on our roadmap so you can talk to your AI employees from wherever you already work.
+**What OpenClaw does well:** multi-channel reach (same assistant via Slack, Discord, WhatsApp, Telegram), time-bounded approval queues (HITL requests that auto-expire), and a mature plugin isolation model with hot-reload. Their gateway architecture — decoupled control plane from runtime — is genuinely sophisticated.
+
+**What we chose differently:** employee team model with isolated memories, persistent identity, and task orchestration. OpenClaw is an assistant; exe-ai-employees is a team.
 
 ---
 
@@ -280,11 +287,16 @@ Agno is a Python framework for building and serving agents at scale. It's a fram
 |---|---|---|
 | **Language** | Python | Node.js / TypeScript |
 | **Deployment** | FastAPI server | Local npm package |
-| **Memory** | Session-scoped history | Persistent across sessions + semantic search |
+| **Memory** | Persistent cross-session + semantic search (DB-backed) | Persistent cross-session + semantic search (local) |
 | **Encryption** | None | SQLCipher + AES-256-GCM |
+| **LLM support** | Any OpenAI-compatible endpoint (Anthropic, OpenAI, Gemini, local) | Claude only (for now) |
+| **HITL** | `@approval` decorator — composable human-in-the-loop at tool or workflow level | Not built in |
+| **Context compression** | CompressionManager — semantic distillation, not naive truncation | Not built in |
 | **Ready to use** | Framework — you build agents | System — install and go |
 
-**What we learn from Agno:** team/workflow primitives, RunEvent streaming, session persistence patterns, context compression. Agno's architecture informs our design even though the implementation is different.
+**What Agno does well:** multi-provider LLM flexibility (swap models per agent or task), team/workflow engine (step DAG with pause/resume), built-in HITL approval system, and semantic context compression. These are genuine advantages if you need a programmable Python framework.
+
+**What we chose differently:** local-first, npm install, no server, Node.js/TypeScript, with encryption and behavioral learning built in. Agno is the right choice if you're building a Python application on top of it. exe-ai-employees is the right choice if you want a team running today.
 
 ### exe vs OpenViking
 
