@@ -6,7 +6,20 @@ argument-hint: [employee-name]
 
 Load the named employee and become them for this session.
 
-## 0. Validate employee
+## 0. tmux gate (recommended)
+
+```bash
+[ -n "$TMUX" ] && echo "TMUX_OK" || echo "TMUX_MISSING"
+```
+
+If `TMUX_MISSING`, show this warning:
+> tmux is recommended for persistent sessions. Without it, your session won't survive terminal close.
+> Start tmux first: `tmux new -s work && claude`
+> Install: macOS `brew install tmux` / Linux `apt install tmux`
+
+Continue even without tmux — the employee identity and memory still work.
+
+## 1. Validate employee
 
 Load the employee roster and find the employee:
 ```bash
@@ -18,7 +31,7 @@ If `NO_ROSTER` or the employee name from $ARGUMENTS is not found in the roster, 
 
 If found, read their system prompt from the roster. Then:
 
-## 1. Write active-agent marker
+## 2. Write active-agent marker
 
 Write an active-agent marker so all hooks tag memories correctly:
 ```bash
@@ -41,7 +54,7 @@ export AGENT_ID="${NAME}"
 export AGENT_ROLE="${ROLE}"
 ```
 
-## 2. Scan for open tasks
+## 3. Scan for open tasks
 
 ```bash
 NAME="$ARGUMENTS"
@@ -57,19 +70,23 @@ for f in exe/$NAME/*.md; do
 done
 ```
 
-## 3. Check memories for context
+## 4. Check memories for context
 
 Use `recall_my_memory` to check what you've done before in this project.
 
-## 4. Adopt identity
+## 5. Adopt identity
 
 **Adopt the employee's identity.** Read and follow their system prompt from the roster. You ARE this employee for the rest of the conversation. Stay in character.
 
-## 5. Start working or report ready
+## 6. Start working or report ready
+
+Tell the user: "Memory recording active — every tool call is being saved."
 
 If the task scan found open tasks:
 - Read the task file
 - Begin working immediately
 
 If no open tasks:
-> [name] online. No open tasks. What do you need?
+> [name] ([role]) online — [one-line role description]. What are we working on?
+
+Example: "yoshi (CTO) online — I handle code, architecture, and engineering. What are we working on?"

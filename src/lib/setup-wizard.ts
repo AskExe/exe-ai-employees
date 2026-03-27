@@ -83,9 +83,7 @@ export async function runSetupWizard(opts: SetupOptions = {}): Promise<void> {
 
     // Step 0: Check for legacy v1.0 database
     if (existsSync(LEGACY_LANCE_PATH)) {
-      log("Found v1.0 LanceDB at ~/.exe-mem/local.lance");
-      log("  v1.1 uses libSQL (SQLite). Your existing memories are not automatically migrated.");
-      log("  The old directory will not be modified or deleted.");
+      log("Found an older memory database. Your old memories are safe — starting fresh with the new format.");
       log("");
     }
 
@@ -108,7 +106,9 @@ export async function runSetupWizard(opts: SetupOptions = {}): Promise<void> {
         log(`  ${mnemonic}`);
         log("");
         log("Write this down and store it somewhere safe.");
-        log("You'll need it to set up on another machine or recover your data.");
+        log("Without this phrase, your memories cannot be recovered if you lose access to this machine.");
+        log("");
+        await ask(rl, "Press Enter after you've written down your recovery phrase: ");
       } catch {
         log("(Recovery phrase generation failed — you can export it later with /exe:link)");
       }
@@ -116,32 +116,15 @@ export async function runSetupWizard(opts: SetupOptions = {}): Promise<void> {
     log("");
 
     // Step 2: Sync configuration
-    log("How do you want to sync your memories?");
-    log("");
-    log("  1. Local only (Recommended)");
-    log("     No sync. Free forever. Your data stays on this machine.");
-    log("");
-    log("  2. Exe Cloud (Coming Soon)");
-    log("     Encrypted sync across machines. Sign up for early access at askexe.com.");
-    log("");
-
-    const syncChoice = await ask(rl, "Choose [1/2]: ");
-
-    if (syncChoice === "2") {
-      log("");
-      log("Exe Cloud is coming soon!");
-      log("Sign up at https://askexe.com for early access.");
-      log("Running in local-only mode for now.");
-    } else {
-      log("Running in local-only mode.");
-    }
+    log("Memories stored locally on this machine (encrypted).");
+    log("Exe Cloud sync coming soon — sign up at https://askexe.com for early access.");
     log("");
 
     // Step 3: Download model (unless --skip-model)
     if (!skipModel) {
       log("Downloading the AI search model (~397MB, one-time download).");
       log("This model runs locally to find relevant past work.");
-      log("The model license restricts commercial redistribution — using it for your own work is fine.");
+      log("This model runs entirely on your device. The license only prevents reselling it — using it for your work is completely fine.");
       log("");
 
       await downloadModel({
@@ -166,14 +149,16 @@ export async function runSetupWizard(opts: SetupOptions = {}): Promise<void> {
     if (!skipEmployees) {
       log("Set up your team");
       log("");
+      log("You'll also get exe — your team coordinator who keeps everything organized.");
+      log("");
       log("exe-ai-employees ships with three specialist roles.");
       log("Name them or press Enter to keep the defaults.");
       log("");
 
-      const roles: Array<{ templateKey: string; role: string; defaultName: string }> = [
-        { templateKey: "yoshi", role: "CTO", defaultName: "yoshi" },
-        { templateKey: "tom", role: "Principal Engineer", defaultName: "tom" },
-        { templateKey: "mari", role: "CMO", defaultName: "mari" },
+      const roles: Array<{ templateKey: string; role: string; defaultName: string; desc: string }> = [
+        { templateKey: "yoshi", role: "CTO", defaultName: "yoshi", desc: "code, architecture, engineering" },
+        { templateKey: "tom", role: "Principal Engineer", defaultName: "tom", desc: "implementation, testing, shipping" },
+        { templateKey: "mari", role: "CMO", defaultName: "mari", desc: "marketing, content, brand" },
       ];
 
       let employees: Employee[] = [];
@@ -189,8 +174,8 @@ export async function runSetupWizard(opts: SetupOptions = {}): Promise<void> {
         employees = [DEFAULT_EXE, ...employees];
       }
 
-      for (const { templateKey, role, defaultName } of roles) {
-        const name = await ask(rl, `  ${role} [${defaultName}]: `);
+      for (const { templateKey, role, defaultName, desc } of roles) {
+        const name = await ask(rl, `  ${role} — ${desc} [${defaultName}]: `);
         const chosenName = name || defaultName;
         const template = TEMPLATES[templateKey]!;
 
@@ -225,12 +210,22 @@ export async function runSetupWizard(opts: SetupOptions = {}): Promise<void> {
     // Step 7: Success summary
     log("Setup complete. Your memories are encrypted and stored locally.");
     log("");
-    log("What to do next:");
-    log("  - Just use Claude Code normally — everything is recorded automatically");
-    log("  - Type /exe to meet your team coordinator");
-    log("  - Create employees with /exe:new-employee");
+    if (!skipEmployees) {
+      let team: Employee[] = [];
+      try { team = await loadEmployees(); } catch {}
+      const cto = team.find(e => e.role === "CTO");
+      const names = team.filter(e => e.name !== "exe").map(e => e.name);
+      if (names.length > 0) {
+        log(`Your team is ready — ${names.join(", ")}.`);
+        log(`Run /exe:call ${cto?.name ?? names[0]} to start.`);
+      } else {
+        log("Run /exe:new-employee to create your first employee.");
+      }
+    } else {
+      log("Run /exe:call <name> to start a session with an employee.");
+    }
     log("");
-    log("Your AI employees will start remembering from your very first session.");
+    log("Memory is recording this session right now.");
     log("");
   } finally {
     rl.close();

@@ -1,10 +1,14 @@
-# Exe-AI-Employees
+# exe-ai-employees
 
 ![npm version](https://img.shields.io/npm/v/exe-ai-employees) ![GitHub stars](https://img.shields.io/github/stars/AskExe/exe-ai-employees) ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white) ![License: MIT](https://img.shields.io/badge/license-MIT-green.svg) ![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen?logo=node.js&logoColor=white) ![MCP](https://img.shields.io/badge/protocol-MCP-8B5CF6) ![Local-first](https://img.shields.io/badge/local--first-yes-00C9A7)
 
 **No company can be run by AI. But ONE person can have many AI employees, today.**
 
-exe-ai-employees gives you a team of AI employees — each with their own role, their own memory, and the ability to learn from every session. Works with Claude Code today, and any MCP-compatible agent tool. You stay in charge. They do the work.
+exe-ai-employees gives you a team of AI employees — each with their own role, their own memory, and the ability to learn from every session. Works with Claude Code. MCP support for other tools coming soon. You stay in charge. They do the work.
+
+```bash
+npm install -g exe-ai-employees && exe-ai-employees --global
+```
 
 <div align="center">
   <img src="./readme-demo-image.png" width="600" alt="Exe AI Employees — One founder, multiple AI employees, real-time coordination" />
@@ -279,49 +283,41 @@ On your first session, run `/exe:setup` inside Claude Code to generate your encr
 
 ## Quick start (5 minutes)
 
+You'll need: **Node.js 18+**, **Claude Code**, and **tmux** (`brew install tmux` / `apt install tmux`).
+
 ```bash
 # 1. Install
 npm install -g exe-ai-employees && exe-ai-employees --global
 ```
 
 ```bash
-# 2. Start a named tmux session — one per project
-tmux new -s exe1
-# Each project gets its own exe# session: exe1, exe2, exe3...
-# Employee sessions inherit the number: yoshi-exe1, tom-exe1, etc.
-# This scoping is required — dispatch and intercom won't work without it.
-# Inside the tmux session:
+# 2. Start a tmux session and launch Claude Code
+tmux new -s work
 claude
 ```
 
 ```bash
-# 3. Run setup
+# 3. Run setup (generates encryption key + downloads search model)
 /exe:setup
-# → Generates your encryption key (stored in system keychain)
-# → Downloads the embedding model (~397MB, one-time)
 ```
 
 ```bash
-# 4. Create your first employee (or use the defaults)
-/exe:new-employee analyst
+# 4. Talk to your CTO — setup created yoshi, tom, and mari for you
+/exe:call yoshi
 ```
 
 ```bash
-# 5. Launch your employee — they become Claude for this session
-/exe:call analyst
-# → Writes identity marker so all memories are tagged to "analyst"
-# → Scans for open tasks and starts working if any exist
-# → Adopts the employee's system prompt and personality
+# 5. Or run /exe first — it's your team overview and coordinator
+/exe
 ```
 
 ```bash
 # 6. Start working — memory captures everything automatically
-# Just use Claude Code normally. Every tool call + prompt is recorded.
+# Every tool call + prompt is recorded and searchable.
 
-# 7. Next session — your employee remembers
+# Next session — your employee remembers
 > "What did we do last time on the auth refactor?"
-# → Employee searches past sessions, finds relevant context,
-#   and responds with full history from prior work.
+# → Searches past sessions, finds relevant context, picks up where you left off.
 ```
 
 That's it. Your AI employees now have persistent memory. Every session builds on the last.

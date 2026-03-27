@@ -51,7 +51,7 @@ async function main(): Promise<void> {
 
   if (templateName && !template) {
     console.error(
-      `Unknown template: ${templateName}. Available templates: yoshi, mari, gen`
+      `Unknown template: ${templateName}. Available templates: yoshi, mari, tom`
     );
     process.exit(1);
   }
@@ -90,6 +90,7 @@ async function main(): Promise<void> {
   }
 
   console.log(`Created employee: ${newEmployee.name} (${newEmployee.role})`);
+  console.log(`Run /exe:call ${newEmployee.name} to start a session.`);
 }
 
 if (isMainModule(import.meta.url)) {

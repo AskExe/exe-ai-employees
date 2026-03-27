@@ -91,8 +91,7 @@ describe("setup-wizard v1.1", () => {
 
   describe("runSetupWizard", () => {
     it("generates master key when none exists", async () => {
-      // Local-only mode (choose option 2)
-      const rl = createMockReadline(["2", "", "", ""]);
+      const rl = createMockReadline(["", "", "", ""]);
       const messages: string[] = [];
 
       await runSetupWizard({
@@ -111,7 +110,7 @@ describe("setup-wizard v1.1", () => {
     it("skips key generation when key exists", async () => {
       mockGetMasterKey.mockResolvedValue(Buffer.alloc(32, 0xab));
 
-      const rl = createMockReadline(["2", "", "", ""]);
+      const rl = createMockReadline(["", "", ""]);
       const messages: string[] = [];
 
       await runSetupWizard({
@@ -124,8 +123,8 @@ describe("setup-wizard v1.1", () => {
       expect(messages.join("\n")).toContain("already exists");
     });
 
-    it("local-only mode when user chooses option 1", async () => {
-      const rl = createMockReadline(["1", "", "", ""]);
+    it("local-only mode message shown", async () => {
+      const rl = createMockReadline(["", "", "", ""]);
       const messages: string[] = [];
 
       await runSetupWizard({
@@ -135,12 +134,12 @@ describe("setup-wizard v1.1", () => {
       });
 
       const output = messages.join("\n");
-      expect(output).toContain("local-only");
+      expect(output).toContain("stored locally");
       expect(mockSaveConfig).toHaveBeenCalledOnce();
     });
 
-    it("Exe Cloud coming soon when user chooses option 2", async () => {
-      const rl = createMockReadline(["2", "", "", ""]);
+    it("Exe Cloud coming soon note shown", async () => {
+      const rl = createMockReadline(["", "", "", ""]);
       const messages: string[] = [];
 
       await runSetupWizard({
@@ -151,14 +150,14 @@ describe("setup-wizard v1.1", () => {
 
       const output = messages.join("\n");
       expect(output).toContain("coming soon");
-      expect(output).toContain("local-only");
+      expect(output).toContain("stored locally");
       expect(mockSaveConfig).toHaveBeenCalledOnce();
     });
 
     it("downloads model when skipModel is false", async () => {
       mockDownloadModel.mockResolvedValue("/path/to/model.gguf");
 
-      const rl = createMockReadline(["2", "", "", ""]);
+      const rl = createMockReadline(["", "", "", ""]);
       const messages: string[] = [];
 
       await runSetupWizard({
@@ -172,7 +171,7 @@ describe("setup-wizard v1.1", () => {
     });
 
     it("prints friendly summary with next steps", async () => {
-      const rl = createMockReadline(["1", "", "", ""]);
+      const rl = createMockReadline(["", "", "", ""]);
       const messages: string[] = [];
 
       await runSetupWizard({
@@ -184,7 +183,7 @@ describe("setup-wizard v1.1", () => {
       const output = messages.join("\n");
       expect(output).toContain("Setup complete");
       expect(output).toContain("encrypted");
-      expect(output).toContain("What to do next");
+      expect(output).toContain("recording this session");
     });
   });
 });
