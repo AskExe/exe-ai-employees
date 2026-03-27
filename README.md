@@ -516,13 +516,40 @@ Retrieval quality degrades when embeddings from different domains are mixed in a
 
 exe-ai-employees partitions memories by employee. Each agent's memories are isolated by default. Cross-agent queries via `ask_team_memory` are explicit and intentional — you choose when to look at a colleague's work, rather than having it pollute your own search results.
 
-### The Local-First Embedding Decision
+### The Local-First Embedding Decision — Provider Freedom
 
-Most AI tools send your data to an API for embedding. That means per-query costs, rate limits, and your code leaving your machine.
+#### The lock-in problem no one talks about
 
-exe-ai-employees runs the embedding model on your device. The Jina v5 Small Q4_K_M quantization was chosen specifically because it delivers 99% of the full model's retrieval quality at 50% of the size — small enough to run on an 8GB VPS, accurate enough that you don't notice the difference.
+Switching LLM providers is easy. OpenAI → Gemini → Claude: swap an API key, adjust the prompt slightly, done. The chat API is commodity.
 
-Trade-off: ~397MB download and ~500MB RAM. We chose that trade-off over the alternative (sending every tool call to a remote API).
+Embeddings are different. Once you embed your data with a provider's model, **you can only retrieve it with that same model**. The vector space is model-specific — embeddings from OpenAI `text-embedding-3-large` are meaningless to Gemini's model. If you switch providers, you have to re-embed everything from scratch: every memory, every document, every indexed item. This is how AI providers actually create lock-in — not through the chat API, but through embeddings.
+
+Cloud embedding APIs compound this with: per-query costs that scale with your memory volume, rate limits that throttle retrieval under load, your data leaving your machine on every search, and availability dependency on the provider's uptime.
+
+#### Why Jina v5 Small
+
+We evaluated the three dominant embedding providers on MTEB benchmark data (March 2026):
+
+| Model | English Avg | Multilingual Avg (MMTEB) | Dim | Max Tokens | Notes |
+|-------|-------------|--------------------------|-----|------------|-------|
+| OpenAI text-embedding-3-large | 64.6–70.9 | ~65 | 3072 | 8,191 | Strong balanced retrieval; $0.13/1M tokens |
+| Gemini text-embedding-004/005 | 62.8–63.8 | 72.1 (legal) | 768–3072 | 2,048–8,192 | Fastest latency (435ms); multilingual edge |
+| **Jina v5 Small (677M params)** | **71.7** | **67.0 (SOTA <1B)** | **1024** | **32,768** | 64.9 MTEB-R, 66.8 RTEB, 56.7 BEIR |
+
+Jina v5 Small beats OpenAI `text-embedding-3-large` on English average (71.7 vs 64.6–70.9) and multilingual retrieval, while running entirely on your device with no API calls. It supports 32K token context — longer than most cloud models — and uses Matryoshka Representation Learning (MRL) so you can truncate to 128 dims if you need speed over precision.
+
+The Q4_K_M quantization we ship delivers 99% of full-precision retrieval quality at 50% of the model size. ~397MB download, ~500MB RAM at runtime. Small enough to run on an 8GB VPS.
+
+#### What this means for your data
+
+- **No lock-in.** Your memories are stored as 1024-dim vectors from an open-weight model. If a better model ships tomorrow, migration tooling can re-embed your history. You own the data; you control the model.
+- **No API costs.** Zero per-query charges regardless of memory volume.
+- **No data egress.** Every embedding computation happens on your machine. Your code, your tasks, your memories — none of it leaves.
+- **No availability dependency.** Retrieval works offline. The daemon runs locally.
+
+Trade-off accepted: ~397MB one-time download during setup. We chose that over the alternative — every tool call permanently tied to a cloud provider's pricing and availability.
+
+**Sources:** [MTEB Leaderboard](https://huggingface.co/spaces/mteb/leaderboard) · [Jina v5 Small model page](https://jina.ai/models/jina-embeddings-v5-text-small/) · [Agentset RAG leaderboard](https://agentset.ai/embeddings) · [AI Embeddings Comparison 2026](https://crazyrouter.com/en/blog/ai-embeddings-comparison-2026-guide)
 
 ### The Daemon Self-Healing Decision
 
