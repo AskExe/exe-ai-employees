@@ -17,6 +17,34 @@ npm install -g exe-ai-employees && exe-ai-employees --global
 
 ---
 
+## How we compare
+
+**Where we're best-in-class** (vs Claude Peers, Paperclip, OpenClaw, Agno, Claude Code, OpenViking, Ruflo):
+
+| Dimension | exe-ai-employees | Best competitor | Verdict |
+|-----------|-----------------|-----------------|---------|
+| **Embedding model** | Jina v5 Small — 71.7 MTEB English, 64.9 retrieval | Ruflo: MiniLM ONNX, OpenViking: cloud APIs | Strongest retrieval model of any AI employee system |
+| **Search fusion** | BM25 + vector cosine + Reciprocal Rank Fusion | OpenViking: directory + semantic; Ruflo: HNSW vector; others: keyword or none | Only system combining full-text + vector + RRF |
+| **Encryption at rest** | SQLCipher full-DB + AES-256-GCM | No competitor encrypts their memory database | Uncontested |
+| **On-device embeddings** | Jina v5 GGUF — no API calls, no data leaves your machine | Ruflo: local ONNX (weaker model); OpenViking/Agno: cloud APIs | Local AND best-performing model |
+| **Memory completeness** | User prompts + every tool call + auto-summaries + behaviors | Ruflo: collective memory; OpenViking: agent-injected context | Most comprehensive capture pipeline |
+| **Cross-machine sync** | E2E encrypted cloud sync | No competitor offers encrypted cross-machine memory sync | Uncontested |
+| **Per-agent isolation** | Strict `agent_id × project` segregation | OpenViking: single-agent; Ruflo: shared collective; Claude Peers: none | Strongest isolation model |
+
+**Where we're not the best** (honest):
+
+| Dimension | Who does it better | What they do |
+|-----------|-------------------|-------------|
+| **Multi-agent coordination** | Ruflo | Swarm consensus (Raft, BFT), Q-learning routing, 100+ agent types |
+| **Context observability** | OpenViking | Visualize retrieval trajectories — debug why an agent got certain context |
+| **Cost optimization** | Ruflo | WASM bypass (<1ms, zero LLM cost), token compression, multi-model routing |
+| **Context organization** | OpenViking | Filesystem paradigm with tiered loading (L0/L1/L2) |
+| **Agent ecosystem size** | Ruflo | 100+ specialized agents vs our template system |
+
+exe-ai-employees is the most accurate, secure, and complete memory system for AI employees available today. State-of-the-art hybrid retrieval, full encryption at rest, on-device embeddings with zero cloud dependency, and E2E encrypted sync across machines. No other open-source system combines all of these. Where we're not the best — orchestration complexity, context visualization, cost optimization — we chose simplicity and focus over feature breadth. Detailed comparisons with each competitor are in the [Architecture section](#how-exe-ai-employees-compares) below.
+
+---
+
 ## Table of contents
 
 **[1. Why This Repo](#1-why-this-repo)** — Who it's for, what it does, how it compares
