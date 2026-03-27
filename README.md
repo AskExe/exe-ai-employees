@@ -2,16 +2,12 @@
 
 ![npm version](https://img.shields.io/npm/v/exe-ai-employees) ![GitHub stars](https://img.shields.io/github/stars/AskExe/exe-ai-employees) ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white) ![License: MIT](https://img.shields.io/badge/license-MIT-green.svg) ![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen?logo=node.js&logoColor=white) ![MCP](https://img.shields.io/badge/protocol-MCP-8B5CF6) ![Local-first](https://img.shields.io/badge/local--first-yes-00C9A7)
 
-<div align="center">
-  <img src="media/exe-owl.png" alt="Exe AI" width="200">
-</div>
-
 **No company can be run by AI. But ONE person can have many AI employees, today.**
 
 exe-ai-employees gives you a team of AI employees — each with their own role, their own memory, and the ability to learn from every session. Works with Claude Code today, and any MCP-compatible agent tool. You stay in charge. They do the work.
 
 <div align="center">
-  <img src="./readme-demo-image.png" width="600" alt="Demo" />
+  <img src="./readme-demo-image.png" width="600" alt="Exe AI Employees — One founder, multiple AI employees, real-time coordination" />
   <p><em>One founder. Multiple AI employees. Real-time coordination.</em></p>
 </div>
 
