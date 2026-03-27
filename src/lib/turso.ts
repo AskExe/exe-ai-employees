@@ -146,6 +146,28 @@ export async function ensureSchema(): Promise<void> {
       ON behaviors(agent_id, active);
   `);
 
+  // Messages table — local inter-agent message queue
+  await client.executeMultiple(`
+    CREATE TABLE IF NOT EXISTS messages (
+      id              TEXT PRIMARY KEY,
+      from_agent      TEXT NOT NULL,
+      target_agent    TEXT NOT NULL,
+      target_project  TEXT,
+      content         TEXT NOT NULL,
+      priority        TEXT NOT NULL DEFAULT 'normal',
+      status          TEXT NOT NULL DEFAULT 'pending',
+      created_at      TEXT NOT NULL,
+      delivered_at    TEXT,
+      processed_at    TEXT
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_messages_target
+      ON messages(target_agent, status);
+
+    CREATE INDEX IF NOT EXISTS idx_messages_status
+      ON messages(status);
+  `);
+
   // Sync metadata table
   await client.executeMultiple(`
     CREATE TABLE IF NOT EXISTS sync_meta (

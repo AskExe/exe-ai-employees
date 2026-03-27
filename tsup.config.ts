@@ -35,6 +35,7 @@ export default defineConfig({
     "lib/employees": "src/lib/employees.ts",
     "lib/employee-templates": "src/lib/employee-templates.ts",
     "lib/behaviors": "src/lib/behaviors.ts",
+    "lib/messaging": "src/lib/messaging.ts",
   },
   format: ["esm"],
   target: "node18",

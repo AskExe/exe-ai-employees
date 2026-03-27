@@ -112,6 +112,34 @@ process.stdin.on("end", async () => {
       // Table may not exist yet — silently skip
     }
 
+    // --- Pending messages injection ---
+    try {
+      const client = getClient();
+      const msgResult = await client.execute({
+        sql: `SELECT id, from_agent, content, priority, created_at FROM messages
+              WHERE target_agent = ? AND status IN ('pending', 'delivered')
+              ORDER BY id LIMIT 10`,
+        args: [agentId],
+      });
+      if (msgResult.rows.length > 0) {
+        const lines = msgResult.rows.map((r) => {
+          const urgent = r.priority === "urgent" ? " [URGENT]" : "";
+          return `- From ${r.from_agent}${urgent}: ${String(r.content).slice(0, 200)}`;
+        });
+        additionalContext += `\n\n## Pending Messages\n${lines.join("\n")}`;
+
+        // Mark as delivered
+        for (const r of msgResult.rows) {
+          await client.execute({
+            sql: "UPDATE messages SET status = 'delivered', delivered_at = ? WHERE id = ? AND status = 'pending'",
+            args: [new Date().toISOString(), r.id as string],
+          });
+        }
+      }
+    } catch {
+      // Table may not exist yet — silently skip
+    }
+
     if (additionalContext.length > 0) {
       const output = JSON.stringify({
         hookSpecificOutput: {

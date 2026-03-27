@@ -11,6 +11,7 @@
  * - get_session_context: temporal window around timestamp (MCP-04)
  * - store_memory: manual memory ingestion fallback (MCP-08, INGEST-07)
  * - store_behavior: persist behavioral patterns/corrections
+ * - send_message: inter-agent message queue
  *
  * CRITICAL: Never write to stdout -- MCP uses stdout for JSON-RPC (MCP-06).
  * All logging goes to stderr.
@@ -32,6 +33,7 @@ import { registerAskTeamMemory } from "./tools/ask-team-memory.js";
 import { registerGetSessionContext } from "./tools/get-session-context.js";
 import { registerStoreMemory } from "./tools/store-memory.js";
 import { registerStoreBehavior } from "./tools/store-behavior.js";
+import { registerSendMessage } from "./tools/send-message.js";
 
 const server = new McpServer({
   name: "exe-memory",
@@ -46,6 +48,7 @@ registerAskTeamMemory(server);
 registerGetSessionContext(server);
 registerStoreMemory(server);
 registerStoreBehavior(server);
+registerSendMessage(server);
 
 try {
   // Initialize store (libSQL + encryption)
