@@ -1,5 +1,6 @@
 /**
  * Bare-bones task primitives — just data, no orchestration.
+ * Schema matches exe-os for upgrade compatibility.
  *
  * @module tasks
  */
@@ -36,8 +37,8 @@ export async function createTask(opts: {
   const now = new Date().toISOString();
 
   await client.execute({
-    sql: `INSERT INTO tasks (id, title, assigned_to, status, created_at, updated_at)
-          VALUES (?, ?, ?, 'open', ?, ?)`,
+    sql: `INSERT INTO tasks (id, title, assigned_to, assigned_by, project_name, priority, status, created_at, updated_at)
+          VALUES (?, ?, ?, 'exe', '', 'p1', 'open', ?, ?)`,
     args: [id, opts.title, opts.assignedTo, now, now],
   });
 

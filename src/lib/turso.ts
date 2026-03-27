@@ -140,43 +140,47 @@ export async function ensureSchema(): Promise<void> {
     );
 
     CREATE INDEX IF NOT EXISTS idx_behaviors_agent
-      ON behaviors(agent_id);
-
-    CREATE INDEX IF NOT EXISTS idx_behaviors_agent_active
       ON behaviors(agent_id, active);
   `);
 
-  // Tasks table — bare-bones task tracking
+  // Tasks table — schema matches exe-os for upgrade compatibility
   await client.executeMultiple(`
     CREATE TABLE IF NOT EXISTS tasks (
-      id          TEXT PRIMARY KEY,
-      title       TEXT NOT NULL,
-      assigned_to TEXT NOT NULL,
-      status      TEXT NOT NULL DEFAULT 'open',
-      created_at  TEXT NOT NULL,
-      updated_at  TEXT NOT NULL
+      id            TEXT PRIMARY KEY,
+      title         TEXT NOT NULL,
+      assigned_to   TEXT NOT NULL,
+      assigned_by   TEXT NOT NULL DEFAULT 'exe',
+      project_name  TEXT NOT NULL DEFAULT '',
+      priority      TEXT NOT NULL DEFAULT 'p1',
+      status        TEXT NOT NULL DEFAULT 'open',
+      task_file     TEXT,
+      created_at    TEXT NOT NULL,
+      updated_at    TEXT NOT NULL
     );
 
-    CREATE INDEX IF NOT EXISTS idx_tasks_assignee
-      ON tasks(assigned_to);
-
-    CREATE INDEX IF NOT EXISTS idx_tasks_status
-      ON tasks(status);
+    CREATE INDEX IF NOT EXISTS idx_tasks_assignee_status
+      ON tasks(assigned_to, status);
   `);
 
-  // Messages table — local inter-agent message queue
+  // Messages table — schema matches exe-os for upgrade compatibility
   await client.executeMultiple(`
     CREATE TABLE IF NOT EXISTS messages (
       id              TEXT PRIMARY KEY,
       from_agent      TEXT NOT NULL,
+      from_device     TEXT NOT NULL DEFAULT 'local',
       target_agent    TEXT NOT NULL,
       target_project  TEXT,
+      target_device   TEXT NOT NULL DEFAULT 'local',
       content         TEXT NOT NULL,
       priority        TEXT NOT NULL DEFAULT 'normal',
       status          TEXT NOT NULL DEFAULT 'pending',
+      server_seq      INTEGER,
+      retry_count     INTEGER NOT NULL DEFAULT 0,
       created_at      TEXT NOT NULL,
       delivered_at    TEXT,
-      processed_at    TEXT
+      processed_at    TEXT,
+      failed_at       TEXT,
+      failure_reason  TEXT
     );
 
     CREATE INDEX IF NOT EXISTS idx_messages_target

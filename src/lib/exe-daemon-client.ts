@@ -121,7 +121,7 @@ function spawnDaemon(): void {
   process.stderr.write(`[exed-client] Spawning daemon: ${resolvedPath}\n`);
 
   // Log daemon stderr to a file for debugging
-  const logPath = path.join(path.dirname(SOCKET_PATH), "exe-daemon.log");
+  const logPath = path.join(path.dirname(SOCKET_PATH), "exed.log");
   let stderrFd: number | "ignore" = "ignore";
   try {
     stderrFd = openSync(logPath, "a");
