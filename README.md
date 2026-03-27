@@ -220,11 +220,11 @@ Claude Peers works when the user is actively talking to agents. It breaks down w
 
 Paperclip positions as orchestration for "zero-human companies." We believe the value isn't removing the human — it's multiplying what one human can do.
 
-**Key difference: token efficiency.** Paperclip uses heartbeat polling — agents wake every N seconds to check for work. Over a day, that's hundreds of wasted model invocations. exe-ai-employees uses push — agents only wake when there's real work. Zero idle token burn.
+**Key difference: token efficiency.** Paperclip's primary dispatch is scheduled heartbeats — agents wake every N seconds to check for work. They also support on-demand wakeup requests for specific triggers. exe-ai-employees uses pure push — agents only activate when work arrives. Zero idle token burn.
 
 | | Paperclip | exe-ai-employees |
 |---|---|---|
-| **Dispatch** | Heartbeat polling (agents check for work) | Push (work delivered to agents) |
+| **Dispatch** | Scheduled heartbeats + on-demand wakeup requests | Pure push (work delivered to agents, zero idle invocations) |
 | **Memory** | No persistent memory across sessions | Automatic capture + semantic search |
 | **Encryption** | None by default | Encrypted at every layer |
 | **Infrastructure** | Requires PostgreSQL server | Local SQLite, zero infrastructure |
@@ -654,7 +654,7 @@ exe-ai-employees uses push, not pull.
 | | Heartbeat/Pull (Paperclip, etc.) | Push (exe-ai-employees) |
 |---|---|---|
 | **Idle cost** | Agent invoked every N seconds to check for work — tokens burned on "nothing to do" | Agent sits completely idle — zero tokens consumed |
-| **Dispatch** | Agent discovers work on next heartbeat cycle | System pushes work directly into the agent's session instantly |
+| **Dispatch** | Scheduled heartbeats + on-demand wakeup requests | System pushes work directly into the agent's session instantly |
 | **Latency** | Up to N seconds before agent notices new work | Near-instant — task arrives the moment it's created |
 | **Daily waste** | Hundreds of check-in invocations with no useful output | Zero wasted invocations |
 
