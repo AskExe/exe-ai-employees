@@ -34,6 +34,9 @@ import { registerGetSessionContext } from "./tools/get-session-context.js";
 import { registerStoreMemory } from "./tools/store-memory.js";
 import { registerStoreBehavior } from "./tools/store-behavior.js";
 import { registerSendMessage } from "./tools/send-message.js";
+import { registerCreateTask } from "./tools/create-task.js";
+import { registerListTasks } from "./tools/list-tasks.js";
+import { registerUpdateTask } from "./tools/update-task.js";
 
 const server = new McpServer({
   name: "exe-memory",
@@ -49,6 +52,9 @@ registerGetSessionContext(server);
 registerStoreMemory(server);
 registerStoreBehavior(server);
 registerSendMessage(server);
+registerCreateTask(server);
+registerListTasks(server);
+registerUpdateTask(server);
 
 try {
   // Initialize store (libSQL + encryption)

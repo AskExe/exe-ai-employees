@@ -146,6 +146,24 @@ export async function ensureSchema(): Promise<void> {
       ON behaviors(agent_id, active);
   `);
 
+  // Tasks table — bare-bones task tracking
+  await client.executeMultiple(`
+    CREATE TABLE IF NOT EXISTS tasks (
+      id          TEXT PRIMARY KEY,
+      title       TEXT NOT NULL,
+      assigned_to TEXT NOT NULL,
+      status      TEXT NOT NULL DEFAULT 'open',
+      created_at  TEXT NOT NULL,
+      updated_at  TEXT NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_tasks_assignee
+      ON tasks(assigned_to);
+
+    CREATE INDEX IF NOT EXISTS idx_tasks_status
+      ON tasks(status);
+  `);
+
   // Messages table — local inter-agent message queue
   await client.executeMultiple(`
     CREATE TABLE IF NOT EXISTS messages (
