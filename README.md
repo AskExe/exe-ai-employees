@@ -1027,6 +1027,12 @@ Built by a solo founder, for solo founders.
 
 ---
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=AskExe/exe-ai-employees&type=Timeline)](https://star-history.com/#AskExe/exe-ai-employees&Timeline)
+
+---
+
 ## License
 
 [MIT](LICENSE)
