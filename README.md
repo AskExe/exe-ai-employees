@@ -40,11 +40,13 @@ npm install -g exe-ai-employees && exe-ai-employees --global
 | **Cost optimization** | Ruflo | WASM bypass (<1ms, zero LLM cost), token compression, multi-model routing |
 | **Context organization** | OpenViking | Filesystem paradigm with tiered loading (L0/L1/L2) |
 | **Agent ecosystem size** | Ruflo | 100+ specialized agents vs our template system |
-| **Multi-LLM routing** | Agno | Any OpenAI-compatible endpoint per agent — swap Claude, OpenAI, Gemini, local |
+| **Multi-LLM routing** | Agno, Hermes | Any OpenAI-compatible endpoint per agent — swap Claude, OpenAI, Gemini, local |
 | **HITL / approval workflows** | Agno, OpenClaw | `@approval` decorator; time-bounded approval queues — we have no built-in HITL |
 | **Context compression** | Agno | CompressionManager: semantic distillation of tool outputs, not naive truncation |
+| **Self-improving skills** | Hermes | Auto-creates reusable procedures from repeated tasks — we store corrections, not auto-generated skills |
+| **Multi-platform access** | Hermes, OpenClaw | Terminal + Telegram + Discord + Slack + WhatsApp + Signal + Email — we're terminal only |
 
-exe-ai-employees is the most accurate, secure, and complete memory system for AI employees available today. State-of-the-art hybrid retrieval, full encryption at rest, on-device embeddings with zero cloud dependency, and E2E encrypted sync across machines. No other open-source system combines all of these. Where we're not the best — orchestration complexity, multi-LLM routing, context visualization, cost optimization, HITL, context compression — we chose simplicity and focus over feature breadth. Detailed comparisons with each competitor are in the [Architecture section](#how-exe-ai-employees-compares) below.
+exe-ai-employees is the most accurate, secure, and complete memory system for AI employees available today. State-of-the-art hybrid retrieval, full encryption at rest, on-device embeddings with zero cloud dependency, and E2E encrypted sync across machines. No other open-source system combines all of these. Where we're not the best — orchestration complexity, multi-LLM routing, self-improving skills, multi-platform access, context visualization, cost optimization, HITL, context compression — we chose simplicity and focus over feature breadth. Detailed comparisons with each competitor are in the [Architecture section](#how-exe-ai-employees-compares) below.
 
 ---
 
@@ -342,6 +344,31 @@ Ruflo (ruvnet/ruflo, originally "Claude Flow") is an enterprise multi-agent orch
 **Where Ruflo has a genuine edge:** multi-agent coordination depth — swarm topologies, consensus algorithms, and reinforcement-learning routing are genuinely sophisticated. Their WASM agent booster for simple tasks is a clever cost optimization we don't offer. And 100+ built-in agent types is a larger ecosystem.
 
 **What we chose differently:** depth over breadth. We'd rather do memory, identity, encryption, and task orchestration exceptionally well than be a platform that claims to do everything. For a solo founder, the complexity of configuring 100+ agents and 12 background workers is a liability, not a feature.
+
+---
+
+### exe vs Hermes Agent
+
+Hermes Agent (NousResearch/hermes-agent) is a self-improving single-agent system from the makers of Hermes open-weight models. One agent, accessible via Terminal, Telegram, Discord, Slack, WhatsApp, Signal, and Email through a unified gateway. It auto-creates reusable skills from complex tasks, refines them over time, and supports any LLM provider via OpenRouter (200+ models). Deployment options include local, Docker, SSH, Daytona (serverless with hibernation), and Modal.
+
+**Key difference: one smart self-improving agent vs a team of specialized employees.** Hermes gets smarter at individual tasks by auto-generating and refining skills. exe-ai-employees gives you multiple specialized employees — each with isolated identity, their own memory, and a role — who coordinate via task dispatch and review chains. A solo founder doesn't need one super-agent that knows everything. They need a CTO who remembers every architectural decision, a principal engineer who never makes the same mistake twice, and a CMO who keeps brand voice consistent — all working in parallel.
+
+| | Hermes Agent | exe-ai-employees |
+|---|---|---|
+| **Agent model** | Single self-improving agent | Multi-agent team (isolated identities, roles, tasks) |
+| **Memory / retrieval** | FTS5 SQLite (keyword search only) | Hybrid BM25 + Jina v5 + RRF (semantic + keyword + fusion) |
+| **Encryption** | Not mentioned | SQLCipher + AES-256-GCM on every memory |
+| **Task orchestration** | Cron scheduler | Push-based dispatch + task chaining + review chains |
+| **Self-improving skills** | Auto-creates reusable procedures from experience | Stores corrections (`store_behavior`), no auto-generated skills |
+| **Multi-platform access** | Terminal + Telegram + Discord + Slack + WhatsApp + Signal + Email | Terminal only (multi-channel on roadmap) |
+| **LLM flexibility** | Any provider via OpenRouter (200+ models) | Claude Code only |
+| **Deployment** | Local, Docker, SSH, Daytona, Modal | Local tmux only |
+| **Cross-machine sync** | Not available | E2E encrypted sync across machines |
+| **User modeling** | Honcho dialectic — builds contextual user model across sessions | Per-employee memory with semantic search |
+
+**Where Hermes has genuine edges:** self-improving skills (auto-generated reusable procedures), multi-platform access from one setup, LLM provider flexibility via OpenRouter, deployment flexibility (serverless/Modal), and Honcho's user modeling. If you want one very smart agent that gets better at your specific workflows over time and works across every messaging channel, Hermes is well-designed.
+
+**What we chose differently:** team model over super-agent model. Multiple specialized employees with isolated context, real-time task dispatch, cross-machine memory sync, and full encryption at rest. And our hybrid BM25 + Jina v5 + RRF retrieval substantially outperforms FTS5 keyword search for finding relevant context across long session histories.
 
 ---
 
