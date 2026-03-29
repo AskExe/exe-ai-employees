@@ -20,6 +20,8 @@ export default defineConfig({
     "hooks/error-recall": "src/adapters/claude/hooks/error-recall.ts",
     "hooks/summary-worker": "src/adapters/claude/hooks/summary-worker.ts",
     "hooks/prompt-ingest-worker": "src/adapters/claude/hooks/prompt-ingest-worker.ts",
+    "hooks/stop": "src/adapters/claude/hooks/stop.ts",
+    "hooks/response-ingest-worker": "src/adapters/claude/hooks/response-ingest-worker.ts",
     // MCP server
     "mcp/server": "src/mcp/server.ts",
     // Libs

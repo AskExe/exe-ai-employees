@@ -28,6 +28,16 @@ export interface UserPromptSubmitPayload {
   prompt: string;
 }
 
+/** Stop hook payload -- fired after every assistant response. */
+export interface StopPayload {
+  session_id: string;
+  transcript_path: string;
+  cwd: string;
+  hook_event_name: "Stop";
+  last_assistant_message: string;
+  stop_hook_active: boolean;
+}
+
 /** SessionStart hook payload -- fired when a session starts or resumes. */
 export interface SessionStartPayload {
   session_id: string;

@@ -255,6 +255,18 @@ export async function mergeHooks(
       },
       marker: "dist/hooks/prompt-submit.js",
     },
+    {
+      event: "Stop",
+      group: {
+        hooks: [
+          {
+            type: "command",
+            command: `node "${path.join(packageRoot, "dist", "hooks", "stop.js")}"`,
+          },
+        ],
+      },
+      marker: "dist/hooks/stop.js",
+    },
   ];
 
   let added = 0;
