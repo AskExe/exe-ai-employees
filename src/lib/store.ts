@@ -117,6 +117,7 @@ export async function writeMemory(record: MemoryRecord): Promise<void> {
     raw_text: record.raw_text,
     vector: record.vector,
     version: _nextVersion++,
+    task_id: record.task_id ?? null,
   };
 
   _pendingRecords.push(dbRow);
@@ -152,28 +153,29 @@ export async function flushBatch(): Promise<number> {
 
     const stmts = batch.map((row) => {
       const hasVector = row.vector !== null;
+      const taskId = row.task_id ?? null;
       return {
         sql: hasVector
           ? `INSERT OR IGNORE INTO memories
               (id, agent_id, agent_role, session_id, timestamp,
                tool_name, project_name,
-               has_error, raw_text, vector, version)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, vector32(?), ?)`
+               has_error, raw_text, vector, version, task_id)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, vector32(?), ?, ?)`
           : `INSERT OR IGNORE INTO memories
               (id, agent_id, agent_role, session_id, timestamp,
                tool_name, project_name,
-               has_error, raw_text, vector, version)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)`,
+               has_error, raw_text, vector, version, task_id)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?)`,
         args: hasVector
           ? [
               row.id, row.agent_id, row.agent_role, row.session_id,
               row.timestamp, row.tool_name, row.project_name,
-              row.has_error, row.raw_text, vectorToBlob(row.vector!), row.version,
+              row.has_error, row.raw_text, vectorToBlob(row.vector!), row.version, taskId,
             ]
           : [
               row.id, row.agent_id, row.agent_role, row.session_id,
               row.timestamp, row.tool_name, row.project_name,
-              row.has_error, row.raw_text, row.version,
+              row.has_error, row.raw_text, row.version, taskId,
             ],
       };
     });

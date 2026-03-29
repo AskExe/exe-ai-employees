@@ -24,6 +24,8 @@ export interface MemoryRecord {
   raw_text: string;
   /** Float32 embedding vector, exactly 1024 dimensions (Jina v5-small Q4_K_M). Null if embedding failed (pending backfill). */
   vector: number[] | null;
+  /** Optional task ID — links this memory to the task being worked on when created. */
+  task_id?: string | null;
 }
 
 /**
@@ -42,6 +44,7 @@ export interface MemoryDbRow {
   raw_text: string;
   vector: number[] | Float32Array | null;
   version: number;                   // monotonic sync version
+  task_id?: string | null;           // trajectory forward-compat
 }
 
 /**

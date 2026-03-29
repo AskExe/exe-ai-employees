@@ -197,6 +197,17 @@ export async function ensureSchema(): Promise<void> {
       value TEXT NOT NULL
     );
   `);
+
+  // Migration: add task_id column to memories (trajectory forward-compat)
+  // Links memories to the task being worked on when they were created.
+  try {
+    await client.execute({
+      sql: `ALTER TABLE memories ADD COLUMN task_id TEXT`,
+      args: [],
+    });
+  } catch {
+    // Column already exists — safe to ignore
+  }
 }
 
 /**

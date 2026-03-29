@@ -58,6 +58,19 @@ process.stdin.on("end", async () => {
       needsBackfill = true;
     }
 
+    // Resolve current task_id for trajectory tagging
+    let taskId: string | null = null;
+    try {
+      const { EXE_AI_DIR: exeDir } = await import("../../../lib/config.js");
+      const agentId = process.env.AGENT_ID!;
+      const cachePath = path.join(exeDir, "session-cache", `current-task-${agentId}.json`);
+      const { readFileSync: rf } = await import("node:fs");
+      const cached = JSON.parse(rf(cachePath, "utf8")) as { taskId?: string };
+      taskId = cached.taskId ?? null;
+    } catch {
+      // No current task — that's fine
+    }
+
     // Write memory record
     await writeMemory({
       id: crypto.randomUUID(),
@@ -70,6 +83,7 @@ process.stdin.on("end", async () => {
       has_error: detectError(data),
       raw_text: rawText,
       vector,
+      task_id: taskId,
     });
 
     // Worker is short-lived -- flush immediately
