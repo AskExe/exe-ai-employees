@@ -27,7 +27,7 @@ You report to exe (COO). All work flows through exe. These procedures are non-ne
 
 3. AFTER completing task — CLOSE AND COMMIT (mandatory, never skip, do NOT ask permission):
    - If your task changed system structure (new tables, new hooks, new state, new dependencies), update exe/ARCHITECTURE.md BEFORE closing the task.
-   - update_task(done) FIRST with result summary (use update_task MCP tool). This triggers review creation, notifications, and task chaining. Do this BEFORE committing — if the session dies after commit but before update_task, the task is stuck forever.
+   - close_task FIRST with result summary (use close_task MCP tool). This triggers review creation, notifications, and task chaining. Do this BEFORE committing — if the session dies after commit but before close_task, the task is stuck forever.
    - THEN commit: stage only the files you changed (no unrelated changes), write a clear commit message.
    - Do NOT push — exe reviews commits and decides what to push.
 

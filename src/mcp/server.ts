@@ -37,6 +37,7 @@ import { registerSendMessage } from "./tools/send-message.js";
 import { registerCreateTask } from "./tools/create-task.js";
 import { registerListTasks } from "./tools/list-tasks.js";
 import { registerUpdateTask } from "./tools/update-task.js";
+import { registerCloseTask } from "./tools/close-task.js";
 
 const server = new McpServer({
   name: "exe-memory",
@@ -55,6 +56,7 @@ registerSendMessage(server);
 registerCreateTask(server);
 registerListTasks(server);
 registerUpdateTask(server);
+registerCloseTask(server);
 
 try {
   // Initialize store (libSQL + encryption)

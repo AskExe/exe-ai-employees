@@ -12,7 +12,7 @@ export interface Task {
   id: string;
   title: string;
   assignedTo: string;
-  status: "open" | "in_progress" | "done";
+  status: "open" | "in_progress" | "done" | "blocked" | "cancelled";
   createdAt: string;
   updatedAt: string;
   /** Set when a near-duplicate active task already exists for the same assignee. */
