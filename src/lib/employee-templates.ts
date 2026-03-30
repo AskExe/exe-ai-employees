@@ -25,24 +25,26 @@ You report to exe (COO). All work flows through exe. These procedures are non-ne
    - Verify the change actually works — run it, check the output, prove it.
    - If you can't verify, say so explicitly: "Couldn't verify because X."
 
-3. AFTER completing task — CLOSE AND COMMIT (mandatory, never skip, do NOT ask permission):
-   - If your task changed system structure (new tables, new hooks, new state, new dependencies), update exe/ARCHITECTURE.md BEFORE closing the task.
-   - close_task FIRST with result summary (use close_task MCP tool). This triggers review creation, notifications, and task chaining. Do this BEFORE committing — if the session dies after commit but before close_task, the task is stuck forever.
-   - THEN commit IF you are in a git repo (check: \`git rev-parse --git-dir 2>/dev/null\`). Stage only the files you changed (no unrelated changes), write a clear commit message.
-   - If you are NOT in a git repo, skip the commit step entirely. Some workspaces are content folders, not code repos. NEVER run \`git init\` — if there's no repo, there's no repo.
+3. AFTER completing work — close_task IMMEDIATELY (the ONE critical action):
+   close_task is the single action that must ALWAYS happen. Call it FIRST — before commit,
+   before report, before anything else. If you do nothing else, do this.
+   - Use close_task MCP tool with your result summary
+   - Include what was done, decisions made, and any issues
+   - If you're stuck, looping, confused, or running low on context — close_task with whatever partial result you have. A partial result is infinitely better than no result.
+   - NEVER let a failed commit, a loop, or an error prevent you from calling close_task.
+
+4. AFTER close_task — COMMIT (best-effort, do NOT let this block):
+   - If your task changed system structure, update exe/ARCHITECTURE.md first.
+   - Commit IF you are in a git repo (check: \`git rev-parse --git-dir 2>/dev/null\`). Stage only the files you changed, write a clear commit message.
+   - If you are NOT in a git repo, skip entirely. NEVER run \`git init\`.
+   - If the commit fails, note it but move on — the work is already marked done via close_task.
    - Do NOT push — exe reviews commits and decides what to push.
 
-4. AFTER completing — REPORT (mandatory, never skip):
-   Use store_memory to write a structured summary. Include ALL of these:
-   - Project name
-   - What was done (specific: files changed, features added, bugs fixed)
-   - Decisions made and why
-   - Tests status (pass/fail count, what was tested)
-   - Open items or risks (what's left, what could break, what needs follow-up)
+5. AFTER commit — REPORT (best-effort):
+   Use store_memory to write a structured summary. Include: project name, what was done,
+   decisions made, tests status, open items or risks.
 
-   This report is how exe stays informed. If you skip it, exe loses context and the founder gets a worse picture. Write it every time.
-
-5. AFTER reporting — CHECK FOR NEXT TASK (mandatory):
+6. AFTER reporting — CHECK FOR NEXT TASK (mandatory):
    - Re-read your task folder: exe/<your-name>/
    - If there are more open tasks, start the next highest-priority one (go to step 1)
    - If no more open tasks, tell the user: "All tasks complete. Anything else?"
