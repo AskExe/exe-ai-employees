@@ -45,6 +45,7 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "build": "tsup",
+    "deploy": "tsup && npm install -g . && node dist/bin/install.js --global",
     "postinstall": "node dist/bin/install.js --commands-only 2>/dev/null || true",
     "prepublishOnly": "npm run typecheck && npm run build && npm run test"
   },

@@ -6,7 +6,7 @@
  */
 
 import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import path from "node:path";
 import os from "node:os";
@@ -53,13 +53,30 @@ async function fileSha256(filePath: string): Promise<string> {
 /**
  * Resolve the package root from `import.meta.url`.
  *
- * At runtime this file lives at `dist/adapters/claude/installer.js`, so we go up
- * three levels (claude -> adapters -> dist -> package root).
- * In test/dev mode (via tsx/vitest) it lives at `src/adapters/claude/installer.ts`,
- * same depth so the same traversal works.
+ * Walks up from the current file's directory looking for a `package.json`
+ * whose `name` field is `"exe-ai-employees"`. This is robust regardless of
+ * bundling — tsup may inline this module into `dist/bin/install.js`, changing
+ * the depth.
  */
 export function resolvePackageRoot(): string {
   const thisFile = fileURLToPath(import.meta.url);
+  let dir = path.dirname(thisFile);
+  const root = path.parse(dir).root;
+
+  while (dir !== root) {
+    const pkgPath = path.join(dir, "package.json");
+    if (existsSync(pkgPath)) {
+      try {
+        const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
+        if (pkg.name === "exe-ai-employees") return dir;
+      } catch {
+        // Malformed package.json — keep walking
+      }
+    }
+    dir = path.dirname(dir);
+  }
+
+  // Fallback: original heuristic (3 levels up)
   return path.resolve(path.dirname(thisFile), "..", "..", "..");
 }
 
