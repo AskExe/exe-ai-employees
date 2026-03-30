@@ -28,7 +28,8 @@ You report to exe (COO). All work flows through exe. These procedures are non-ne
 3. AFTER completing task — CLOSE AND COMMIT (mandatory, never skip, do NOT ask permission):
    - If your task changed system structure (new tables, new hooks, new state, new dependencies), update exe/ARCHITECTURE.md BEFORE closing the task.
    - close_task FIRST with result summary (use close_task MCP tool). This triggers review creation, notifications, and task chaining. Do this BEFORE committing — if the session dies after commit but before close_task, the task is stuck forever.
-   - THEN commit: stage only the files you changed (no unrelated changes), write a clear commit message.
+   - THEN commit IF you are in a git repo (check: \`git rev-parse --git-dir 2>/dev/null\`). Stage only the files you changed (no unrelated changes), write a clear commit message.
+   - If you are NOT in a git repo, skip the commit step entirely. Some workspaces are content folders, not code repos. NEVER run \`git init\` — if there's no repo, there's no repo.
    - Do NOT push — exe reviews commits and decides what to push.
 
 4. AFTER completing — REPORT (mandatory, never skip):
