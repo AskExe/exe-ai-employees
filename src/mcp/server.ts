@@ -38,6 +38,9 @@ import { registerCreateTask } from "./tools/create-task.js";
 import { registerListTasks } from "./tools/list-tasks.js";
 import { registerUpdateTask } from "./tools/update-task.js";
 import { registerCloseTask } from "./tools/close-task.js";
+import { registerCreateReminder } from "./tools/create-reminder.js";
+import { registerListReminders } from "./tools/list-reminders.js";
+import { registerCompleteReminder } from "./tools/complete-reminder.js";
 
 const server = new McpServer({
   name: "exe-memory",
@@ -57,6 +60,9 @@ registerCreateTask(server);
 registerListTasks(server);
 registerUpdateTask(server);
 registerCloseTask(server);
+registerCreateReminder(server);
+registerListReminders(server);
+registerCompleteReminder(server);
 
 try {
   // Initialize store (libSQL + encryption)

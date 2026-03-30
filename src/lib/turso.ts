@@ -208,6 +208,17 @@ export async function ensureSchema(): Promise<void> {
   } catch {
     // Column already exists — safe to ignore
   }
+
+  // Reminders table — simple text reminders shown in boot brief
+  await client.executeMultiple(`
+    CREATE TABLE IF NOT EXISTS reminders (
+      id            TEXT PRIMARY KEY,
+      text          TEXT NOT NULL,
+      created_at    TEXT NOT NULL,
+      due_date      TEXT,
+      completed_at  TEXT
+    );
+  `);
 }
 
 /**
