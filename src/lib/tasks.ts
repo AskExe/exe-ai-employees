@@ -60,6 +60,7 @@ export async function createTask(opts: {
 export async function listTasks(opts?: {
   assignedTo?: string;
   status?: string;
+  projectName?: string;
 }): Promise<Task[]> {
   const client = getClient();
   const conditions: string[] = [];
@@ -72,6 +73,10 @@ export async function listTasks(opts?: {
   if (opts?.status) {
     conditions.push("status = ?");
     args.push(opts.status);
+  }
+  if (opts?.projectName) {
+    conditions.push("project_name = ?");
+    args.push(opts.projectName);
   }
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
