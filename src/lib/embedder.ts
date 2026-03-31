@@ -28,7 +28,7 @@ export async function getEmbedder(): Promise<void> {
   const ok = await connectEmbedDaemon();
   if (!ok) {
     throw new Error(
-      "Could not connect to embedding daemon. Ensure the model is installed (run /exe:setup).",
+      "Could not connect to embedding daemon. Ensure the model is installed (run /exe-setup).",
     );
   }
 }
@@ -49,7 +49,7 @@ export async function embed(text: string): Promise<number[]> {
 
   if (!vector) {
     throw new Error(
-      "Embedding failed: daemon unavailable. Run /exe:setup to verify model installation.",
+      "Embedding failed: daemon unavailable. Run /exe-setup to verify model installation.",
     );
   }
 
@@ -90,7 +90,7 @@ export async function embedDirect(text: string): Promise<number[]> {
 
   const modelPath = path.join(MODELS_DIR, "jina-embeddings-v5-small-q4_k_m.gguf");
   if (!existsSync(modelPath)) {
-    throw new Error(`Embedding model not found at ${modelPath}. Run '/exe:setup' to download it.`);
+    throw new Error(`Embedding model not found at ${modelPath}. Run '/exe-setup' to download it.`);
   }
 
   const llama = await llamaCpp.getLlama();

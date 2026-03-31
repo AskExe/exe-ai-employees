@@ -369,5 +369,5 @@ export async function runInstaller(homeDir?: string): Promise<void> {
   );
 
   process.stderr.write(`\nexe-ai-employees installed successfully.\n`);
-  process.stderr.write(`Run /exe:setup inside Claude Code to complete first-time setup.\n`);
+  process.stderr.write(`Run /exe-setup inside Claude Code to complete first-time setup.\n`);
 }

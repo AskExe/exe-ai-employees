@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * /exe:forget CLI — delete memories by ID, agent, or search query.
+ * /exe-forget CLI — delete memories by ID, agent, or search query.
  *
  * Usage:
  *   exe-forget --id <memory-id>      — delete one memory
@@ -42,7 +42,7 @@ async function main(): Promise<void> {
 
   // Safety: require a real terminal — block execution from Claude Code hooks/agents
   if (!process.stdin.isTTY) {
-    console.error("Error: /exe:forget must be run directly in your terminal, not through an AI agent.");
+    console.error("Error: /exe-forget must be run directly in your terminal, not through an AI agent.");
     console.error("This is a destructive operation that requires human confirmation.");
     console.error("\nRun it yourself:");
     console.error("  node \"$(npm root -g)/exe-os/dist/bin/exe-forget.js\" --id <id>");

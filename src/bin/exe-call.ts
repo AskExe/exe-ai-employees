@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * /exe:call session launcher — launches a specialist session with isolated config.
+ * /exe-call session launcher — launches a specialist session with isolated config.
  *
  * Sets CLAUDE_CONFIG_DIR, AGENT_ID, and AGENT_ROLE for full session isolation.
  * Each employee runs in ~/.exe-mem/sessions/<name>/ with their own CLAUDE.md.
@@ -28,7 +28,7 @@ export function resolveEmployee(
   const employee = getEmployee(employees, resolved);
   if (!employee) {
     throw new Error(
-      `Employee '${resolved}' not found. Run /exe:team to see available employees.`,
+      `Employee '${resolved}' not found. Run /exe-team to see available employees.`,
     );
   }
   return employee;

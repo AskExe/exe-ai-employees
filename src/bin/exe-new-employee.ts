@@ -90,7 +90,7 @@ async function main(): Promise<void> {
   }
 
   console.log(`Created employee: ${newEmployee.name} (${newEmployee.role})`);
-  console.log(`Run /exe:call ${newEmployee.name} to start a session.`);
+  console.log(`Run /exe-call ${newEmployee.name} to start a session.`);
 }
 
 if (isMainModule(import.meta.url)) {

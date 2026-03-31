@@ -56,7 +56,7 @@ export function registerStoreBehavior(server: McpServer): void {
         const others = existing.filter((b) => b.id !== id);
         if (others.length > 0) {
           const list = others.map((b) => `  - [${b.id}] ${b.content}`).join("\n");
-          responseText += `\n\nExisting behaviors in [${domain}] domain:\n${list}\nUse /exe:forget to remove any that this supersedes.`;
+          responseText += `\n\nExisting behaviors in [${domain}] domain:\n${list}\nUse /exe-forget to remove any that this supersedes.`;
         }
       }
 

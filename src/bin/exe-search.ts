@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * /exe:search CLI — search memories by keyword or semantic query.
+ * /exe-search CLI — search memories by keyword or semantic query.
  *
  * Usage: exe-search <query>
  *
@@ -22,7 +22,7 @@ async function main(): Promise<void> {
 
   const agentId = process.env.AGENT_ID;
   if (!agentId) {
-    console.error("No AGENT_ID set. Run this inside an employee session (/exe:call <name>).");
+    console.error("No AGENT_ID set. Run this inside an employee session (/exe-call <name>).");
     process.exit(1);
   }
 

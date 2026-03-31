@@ -1,5 +1,5 @@
 /**
- * /exe:settings — Interactive configuration for exe-os.
+ * /exe-settings — Interactive configuration for exe-os.
  *
  * Displays current settings and lets the user toggle:
  * - Auto-ingestion (write memories on every tool call)

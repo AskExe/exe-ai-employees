@@ -1,7 +1,7 @@
 /**
  * Resolves the active agent identity for the current Claude Code session.
  *
- * When `/exe:call <name>` runs, it writes a marker file keyed by the
+ * When `/exe-call <name>` runs, it writes a marker file keyed by the
  * Claude Code process PID (resolved via process tree walk in session-key.ts).
  * Hooks read this marker to determine the real agent identity, since the
  * process env still carries the parent session's AGENT_ID from settings.json.
@@ -35,7 +35,7 @@ function getMarkerPath(): string {
 
 /**
  * Write an active-agent marker for this Claude Code session.
- * Called by `/exe:call` before adopting the employee identity.
+ * Called by `/exe-call` before adopting the employee identity.
  */
 export function writeActiveAgent(agentId: string, agentRole: string): void {
   try {

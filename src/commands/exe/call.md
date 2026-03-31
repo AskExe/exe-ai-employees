@@ -27,7 +27,7 @@ cat ~/.exe-mem/exe-employees.json 2>/dev/null || echo "NO_ROSTER"
 ```
 
 If `NO_ROSTER` or the employee name from $ARGUMENTS is not found in the roster, tell the user:
-> Employee not found. Run `/exe:team` to see available employees, or `/exe:new-employee <name>` to create one.
+> Employee not found. Run `/exe-team` to see available employees, or `/exe-new-employee <name>` to create one.
 
 If found, read their system prompt from the roster. Then:
 

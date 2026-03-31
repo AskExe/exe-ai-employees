@@ -27,4 +27,4 @@ After the wizard completes, tell the user:
 - Setup is complete — their data is encrypted and stored locally
 - They can start using Claude Code normally — everything is recorded automatically
 - Type /exe to meet their team coordinator
-- They can change settings anytime with `/exe:settings`
+- They can change settings anytime with `/exe-settings`

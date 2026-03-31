@@ -9,7 +9,7 @@ async function main(): Promise<void> {
 
   if (employees.length === 0) {
     console.log(
-      "No employees registered. Run /exe:new-employee to create one."
+      "No employees registered. Run /exe-new-employee to create one."
     );
     return;
   }

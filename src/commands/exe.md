@@ -9,7 +9,7 @@ allowed-tools: Bash, AskUserQuestion, Write, Read, Edit, Glob, Grep, recall_my_m
 ls ~/.exe-mem/master.key 2>/dev/null && ls ~/.exe-mem/models/jina-embeddings-v5-small-q4_k_m.gguf 2>/dev/null && echo "SETUP_OK" || echo "NEEDS_SETUP"
 ```
 
-If `NEEDS_SETUP`: run `/exe:setup` inline, then continue below.
+If `NEEDS_SETUP`: run `/exe-setup` inline, then continue below.
 
 ---
 

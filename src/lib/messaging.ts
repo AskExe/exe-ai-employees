@@ -190,7 +190,7 @@ export function deliverViaTmux(targetAgent: string): boolean {
 
   try {
     execSync(
-      `tmux send-keys -t ${JSON.stringify(targetSession)} '/exe:intercom' Enter`,
+      `tmux send-keys -t ${JSON.stringify(targetSession)} '/exe-intercom' Enter`,
       { timeout: 3000, stdio: "ignore" },
     );
     return true;

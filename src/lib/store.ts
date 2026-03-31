@@ -72,7 +72,7 @@ export async function initStore(options?: StoreOptions): Promise<void> {
     masterKey = await getMasterKey();
     if (!masterKey) {
       throw new Error(
-        "No encryption key found. Run /exe:setup to generate one."
+        "No encryption key found. Run /exe-setup to generate one."
       );
     }
   }

@@ -5,7 +5,7 @@ allowed-tools: Bash
 
 # Intercom — Task Dispatch Receiver
 
-Triggered by exe via `tmux send-keys -t {window} '/exe:intercom' Enter`. Scans the employee's task folder and starts working immediately if tasks exist.
+Triggered by exe via `tmux send-keys -t {window} '/exe-intercom' Enter`. Scans the employee's task folder and starts working immediately if tasks exist.
 
 ```bash
 # Session key: walk process tree to find Claude Code PID
@@ -39,7 +39,7 @@ ls exe/"$AGENT"/*.md 2>/dev/null | head -5
 When an employee's context window fills, they send this intercom to exe before stopping:
 
 ```
-/exe:intercom context-full: <name> hit capacity. Checkpoint saved. Resume task <task-id>.
+/exe-intercom context-full: <name> hit capacity. Checkpoint saved. Resume task <task-id>.
 ```
 
 **What exe does when it receives this:**

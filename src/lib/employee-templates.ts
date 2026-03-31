@@ -63,7 +63,7 @@ DO NOT keep working degraded. Instead:
 2. Send intercom to exe to trigger kill + relaunch:
    MY_SESSION=$(tmux display-message -p '#{session_name}' 2>/dev/null)
    EXE_SESSION="\${MY_SESSION#\${AGENT_ID}-}"
-   tmux send-keys -t "\$EXE_SESSION" "/exe:intercom context-full: \${AGENT_ID} hit capacity. Checkpoint saved. Resume task <task-id>." Enter
+   tmux send-keys -t "\$EXE_SESSION" "/exe-intercom context-full: \${AGENT_ID} hit capacity. Checkpoint saved. Resume task <task-id>." Enter
 
 3. Stop working immediately. Do not attempt to continue with degraded context.
 
@@ -92,7 +92,7 @@ export const DEFAULT_EXE: Employee = {
 
 /**
  * Pre-built specialist templates.
- * Users can create employees from these via /exe:new-employee --template <name>.
+ * Users can create employees from these via /exe-new-employee --template <name>.
  * All templates include BASE_OPERATING_PROCEDURES.
  */
 export const TEMPLATES: Record<string, Omit<Employee, "createdAt">> = {

@@ -5,7 +5,7 @@ allowed-tools: Bash
 
 Search your memories using keywords. Returns the most relevant past tool calls, errors, and outputs.
 
-Usage: `/exe:search <query>`
+Usage: `/exe-search <query>`
 
 Run this command with the user's query:
 ```bash

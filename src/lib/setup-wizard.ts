@@ -112,7 +112,7 @@ export async function runSetupWizard(opts: SetupOptions = {}): Promise<void> {
         log("");
         await ask(rl, "Press Enter after you've written down your recovery phrase: ");
       } catch {
-        log("(Recovery phrase generation failed — you can export it later with /exe:link)");
+        log("(Recovery phrase generation failed — you can export it later with /exe-link)");
       }
     }
     log("");
@@ -233,12 +233,12 @@ export async function runSetupWizard(opts: SetupOptions = {}): Promise<void> {
       const names = team.filter(e => e.name !== "exe").map(e => e.name);
       if (names.length > 0) {
         log(`Your team is ready — ${names.join(", ")}.`);
-        log(`Run /exe:call ${cto?.name ?? names[0]} to start.`);
+        log(`Run /exe-call ${cto?.name ?? names[0]} to start.`);
       } else {
-        log("Run /exe:new-employee to create your first employee.");
+        log("Run /exe-new-employee to create your first employee.");
       }
     } else {
-      log("Run /exe:call <name> to start a session with an employee.");
+      log("Run /exe-call <name> to start a session with an employee.");
     }
     log("");
     log("Memory is recording this session right now.");
