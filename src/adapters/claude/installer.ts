@@ -81,12 +81,15 @@ export function resolvePackageRoot(): string {
 }
 
 // ---------------------------------------------------------------------------
-// copySlashCommands
+// copySlashCommands (now installs as skills)
 // ---------------------------------------------------------------------------
 
 /**
- * Copy `.md` slash command files from the package source to
- * `~/.claude/commands/exe/`.
+ * Install exe-os skills to `~/.claude/skills/`.
+ *
+ * Claude Code 2.1.80+ deprecated `~/.claude/commands/` in favor of skills.
+ * Each subcommand gets its own directory: `~/.claude/skills/exe-<name>/SKILL.md`.
+ * The main boot command goes to `~/.claude/skills/exe/SKILL.md`.
  *
  * Uses SHA256 content-hash comparison so unchanged files are skipped.
  *
@@ -100,31 +103,34 @@ export async function copySlashCommands(
   let copied = 0;
   let skipped = 0;
 
-  // Copy /exe:* commands from src/commands/exe/
-  const exeDir = path.join(packageRoot, "src", "commands", "exe");
-  const exeDestDir = path.join(homeDir, ".claude", "commands", "exe");
+  const skillsBase = path.join(homeDir, ".claude", "skills");
 
+  // Install /exe-<name> subcommand skills from src/commands/exe/
+  const exeDir = path.join(packageRoot, "src", "commands", "exe");
   if (existsSync(exeDir)) {
     const entries = await readdir(exeDir);
     const mdFiles = entries.filter((f) => f.endsWith(".md"));
-    if (mdFiles.length > 0) {
-      await mkdir(exeDestDir, { recursive: true });
-      for (const file of mdFiles) {
-        const result = await copyIfChanged(
-          path.join(exeDir, file),
-          path.join(exeDestDir, file),
-        );
-        if (result) copied++; else skipped++;
-      }
+    for (const file of mdFiles) {
+      const name = file.replace(".md", "");
+      const destDir = path.join(skillsBase, `exe-${name}`);
+      await mkdir(destDir, { recursive: true });
+
+      const srcPath = path.join(exeDir, file);
+      const destPath = path.join(destDir, "SKILL.md");
+
+      // Transform command frontmatter → skill frontmatter (add name field)
+      const result = await copyAsSkill(srcPath, destPath, `exe-${name}`);
+      if (result) copied++; else skipped++;
     }
   }
 
-  // Copy /exe top-level command from src/commands/exe.md
+  // Install /exe main boot skill from src/commands/exe.md
   const topLevelSrc = path.join(packageRoot, "src", "commands", "exe.md");
-  const topLevelDest = path.join(homeDir, ".claude", "commands", "exe.md");
   if (existsSync(topLevelSrc)) {
-    await mkdir(path.dirname(topLevelDest), { recursive: true });
-    const result = await copyIfChanged(topLevelSrc, topLevelDest);
+    const destDir = path.join(skillsBase, "exe");
+    await mkdir(destDir, { recursive: true });
+    const destPath = path.join(destDir, "SKILL.md");
+    const result = await copyAsSkill(topLevelSrc, destPath, "exe");
     if (result) copied++; else skipped++;
   }
 
@@ -138,6 +144,37 @@ async function copyIfChanged(srcPath: string, destPath: string): Promise<boolean
     if (srcHash === destHash) return false;
   }
   await writeFile(destPath, await readFile(srcPath));
+  return true;
+}
+
+/**
+ * Copy a command .md file as a SKILL.md, injecting/updating the `name` field.
+ * Returns true if the file was written, false if unchanged.
+ */
+async function copyAsSkill(srcPath: string, destPath: string, skillName: string): Promise<boolean> {
+  let content = await readFile(srcPath, "utf-8");
+
+  // Ensure the frontmatter has the correct name field
+  const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
+  if (fmMatch) {
+    const fm = fmMatch[1];
+    if (fm.includes("name:")) {
+      // Update existing name field
+      content = content.replace(/^(---\n[\s\S]*?)name:\s*[^\n]+/,
+        `$1name: ${skillName}`);
+    } else {
+      // Add name field after opening ---
+      content = content.replace(/^---\n/, `---\nname: ${skillName}\n`);
+    }
+  }
+
+  // Check if dest already has identical content
+  if (existsSync(destPath)) {
+    const existing = await readFile(destPath, "utf-8");
+    if (existing === content) return false;
+  }
+
+  await writeFile(destPath, content);
   return true;
 }
 
