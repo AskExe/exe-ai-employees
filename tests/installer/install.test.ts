@@ -41,36 +41,37 @@ describe("copySlashCommands", () => {
     await rm(tmpPkgRoot, { recursive: true, force: true });
   });
 
-  it("creates ~/.claude/commands/exe/ and copies .md files", async () => {
+  it("creates ~/.claude/skills/exe-<name>/SKILL.md for each subcommand", async () => {
     // Setup: create source commands
     const srcDir = path.join(tmpPkgRoot, "src", "commands", "exe");
     await mkdir(srcDir, { recursive: true });
-    await writeFile(path.join(srcDir, "setup.md"), "# Setup command");
-    await writeFile(path.join(srcDir, "update.md"), "# Update command");
+    await writeFile(path.join(srcDir, "setup.md"), "---\ndescription: Setup\n---\n# Setup command");
+    await writeFile(path.join(srcDir, "update.md"), "---\ndescription: Update\n---\n# Update command");
 
     const result = await installerModule.copySlashCommands(tmpPkgRoot, tmpHome);
 
     expect(result.copied).toBe(2);
     expect(result.skipped).toBe(0);
 
-    const destDir = path.join(tmpHome, ".claude", "commands", "exe");
-    expect(existsSync(path.join(destDir, "setup.md"))).toBe(true);
-    expect(existsSync(path.join(destDir, "update.md"))).toBe(true);
+    const skillsBase = path.join(tmpHome, ".claude", "skills");
+    expect(existsSync(path.join(skillsBase, "exe-setup", "SKILL.md"))).toBe(true);
+    expect(existsSync(path.join(skillsBase, "exe-update", "SKILL.md"))).toBe(true);
 
-    const content = await readFile(path.join(destDir, "setup.md"), "utf-8");
-    expect(content).toBe("# Setup command");
+    const content = await readFile(path.join(skillsBase, "exe-setup", "SKILL.md"), "utf-8");
+    expect(content).toContain("name: exe-setup");
+    expect(content).toContain("# Setup command");
   });
 
-  it("skips copy when SHA256 matches (idempotent)", async () => {
-    // Setup: create source and matching destination
+  it("skips copy when content matches (idempotent)", async () => {
+    // Setup: create source command
     const srcDir = path.join(tmpPkgRoot, "src", "commands", "exe");
     await mkdir(srcDir, { recursive: true });
-    await writeFile(path.join(srcDir, "setup.md"), "# Setup command");
+    await writeFile(path.join(srcDir, "setup.md"), "---\ndescription: Setup\n---\n# Setup command");
 
-    const destDir = path.join(tmpHome, ".claude", "commands", "exe");
-    await mkdir(destDir, { recursive: true });
-    await writeFile(path.join(destDir, "setup.md"), "# Setup command"); // same content
+    // First run
+    await installerModule.copySlashCommands(tmpPkgRoot, tmpHome);
 
+    // Second run — should skip
     const result = await installerModule.copySlashCommands(tmpPkgRoot, tmpHome);
 
     expect(result.copied).toBe(0);

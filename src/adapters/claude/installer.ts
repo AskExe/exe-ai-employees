@@ -7,7 +7,7 @@
 
 import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
 import { existsSync, readFileSync } from "node:fs";
-import { createHash } from "node:crypto";
+
 import path from "node:path";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
@@ -35,15 +35,6 @@ interface Settings {
 interface ClaudeJson {
   mcpServers?: Record<string, unknown>;
   [key: string]: unknown;
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-async function fileSha256(filePath: string): Promise<string> {
-  const content = await readFile(filePath);
-  return createHash("sha256").update(content).digest("hex");
 }
 
 // ---------------------------------------------------------------------------
@@ -137,16 +128,6 @@ export async function copySlashCommands(
   return { copied, skipped };
 }
 
-async function copyIfChanged(srcPath: string, destPath: string): Promise<boolean> {
-  const srcHash = await fileSha256(srcPath);
-  if (existsSync(destPath)) {
-    const destHash = await fileSha256(destPath);
-    if (srcHash === destHash) return false;
-  }
-  await writeFile(destPath, await readFile(srcPath));
-  return true;
-}
-
 /**
  * Copy a command .md file as a SKILL.md, injecting/updating the `name` field.
  * Returns true if the file was written, false if unchanged.
@@ -156,7 +137,7 @@ async function copyAsSkill(srcPath: string, destPath: string, skillName: string)
 
   // Ensure the frontmatter has the correct name field
   const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
-  if (fmMatch) {
+  if (fmMatch?.[1]) {
     const fm = fmMatch[1];
     if (fm.includes("name:")) {
       // Update existing name field
