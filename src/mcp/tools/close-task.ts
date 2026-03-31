@@ -10,6 +10,10 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { updateTask } from "../../lib/tasks.js";
+import { getActiveAgent } from "../../adapters/claude/active-agent.js";
+
+/** Agents allowed to use close_task (reviewers only) */
+const CLOSE_TASK_ALLOWED_AGENTS = new Set(["exe", "ea"]);
 
 export function registerCloseTask(server: McpServer): void {
   server.registerTool(
@@ -17,7 +21,7 @@ export function registerCloseTask(server: McpServer): void {
     {
       title: "Close Task",
       description:
-        "Mark a task as complete with your result summary. This is the standard way to finish work.",
+        "Reviewer-only: finalize a task after review. Employees should use update_task with status 'done' instead.",
       inputSchema: {
         task_id: z.string().describe("Task UUID"),
         result: z
@@ -31,6 +35,23 @@ export function registerCloseTask(server: McpServer): void {
       },
     },
     async ({ task_id, result, status }) => {
+      // Guard: only reviewers (exe, ea) can use close_task
+      const agent = getActiveAgent();
+      if (agent.agentId && !CLOSE_TASK_ALLOWED_AGENTS.has(agent.agentId)) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text:
+                `close_task is for reviewers only (exe). ` +
+                `Use update_task with status "done" and your result summary to complete your work. ` +
+                `This triggers a review task for exe.`,
+            },
+          ],
+          isError: true,
+        };
+      }
+
       const updated = await updateTask(task_id, status);
 
       return {

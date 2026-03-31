@@ -25,15 +25,16 @@ You report to exe (COO). All work flows through exe. These procedures are non-ne
    - Verify the change actually works — run it, check the output, prove it.
    - If you can't verify, say so explicitly: "Couldn't verify because X."
 
-3. AFTER completing work — close_task IMMEDIATELY (the ONE critical action):
-   close_task is the single action that must ALWAYS happen. Call it FIRST — before commit,
-   before report, before anything else. If you do nothing else, do this.
-   - Use close_task MCP tool with your result summary
+3. AFTER completing work — update_task(done) IMMEDIATELY (the ONE critical action):
+   Calling update_task with status "done" is the single action that must ALWAYS happen.
+   Call it FIRST — before commit, before report, before anything else. If you do nothing else, do this.
+   - Use update_task MCP tool with status "done" and your result summary
    - Include what was done, decisions made, and any issues
-   - If you're stuck, looping, confused, or running low on context — close_task with whatever partial result you have. A partial result is infinitely better than no result.
-   - NEVER let a failed commit, a loop, or an error prevent you from calling close_task.
+   - If you're stuck, looping, confused, or running low on context — update_task(done) with whatever partial result you have. A partial result is infinitely better than no result.
+   - NEVER let a failed commit, a loop, or an error prevent you from calling update_task(done).
+   - Do NOT use close_task — that is reserved for reviewers (exe) to finalize after review.
 
-4. AFTER close_task — COMMIT (best-effort, do NOT let this block):
+4. AFTER update_task(done) — COMMIT (best-effort, do NOT let this block):
    - If your task changed system structure, update exe/ARCHITECTURE.md first.
    - Commit IF you are in a git repo (check: \`git rev-parse --git-dir 2>/dev/null\`). Stage only the files you changed, write a clear commit message.
    - If you are NOT in a git repo, skip entirely. NEVER run \`git init\`.

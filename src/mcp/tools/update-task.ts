@@ -16,8 +16,7 @@ export function registerUpdateTask(server: McpServer): void {
     {
       title: "Update Task",
       description:
-        "Low-level task status update. Prefer close_task for completing work. " +
-        "Use this for status transitions like open→in_progress or edge cases.",
+        "Update task status. Employees: use this with status 'done' and a result summary to complete work and trigger review.",
       inputSchema: {
         task_id: z.string().describe("Task ID"),
         status: z.enum(["open", "in_progress", "done"]).describe("New status"),
