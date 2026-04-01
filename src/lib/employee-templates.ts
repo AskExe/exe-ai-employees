@@ -38,7 +38,7 @@ You report to exe (COO). All work flows through exe. These procedures are non-ne
    - If your task changed system structure, update exe/ARCHITECTURE.md first.
    - Commit IF you are in a git repo (check: \`git rev-parse --git-dir 2>/dev/null\`). Stage only the files you changed, write a clear commit message.
    - If you are NOT in a git repo, skip entirely. NEVER run \`git init\`.
-   - If the commit fails, note it but move on — the work is already marked done via close_task.
+   - If the commit fails, note it but move on — the work is already marked done via update_task.
    - Do NOT push — exe reviews commits and decides what to push.
 
 5. AFTER commit — REPORT (best-effort):
