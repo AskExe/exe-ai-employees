@@ -33,6 +33,7 @@ const SOCKET_PATH = process.env.EXE_DAEMON_SOCK ?? process.env.EXE_EMBED_SOCK ??
 const PID_PATH = process.env.EXE_DAEMON_PID ?? process.env.EXE_EMBED_PID ?? path.join(EXE_AI_DIR, "exed.pid");
 const MODEL_FILE = "jina-embeddings-v5-small-q4_k_m.gguf";
 const IDLE_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes — longer to avoid cold starts during active sessions
+const REVIEW_POLL_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes — fallback for missed intercoms
 
 // ---------------------------------------------------------------------------
 // Types
@@ -312,6 +313,50 @@ function startServer(): void {
 }
 
 // ---------------------------------------------------------------------------
+// Review polling (fallback for missed intercoms)
+// ---------------------------------------------------------------------------
+
+let _storeInitialized = false;
+
+async function ensureStoreForPolling(): Promise<boolean> {
+  if (_storeInitialized) return true;
+  try {
+    const { initStore } = await import("./store.js");
+    await initStore();
+    _storeInitialized = true;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function startReviewPolling(): void {
+  const polling = require("./review-polling.js") as typeof import("./review-polling.js");
+  const state: import("./review-polling.js").ReviewPollState = {
+    lastIntercomSent: new Map<string, number>(),
+    intervalMs: REVIEW_POLL_INTERVAL_MS,
+  };
+
+  const tick = async () => {
+    if (!await ensureStoreForPolling()) return;
+    try {
+      const { getClient } = await import("./turso.js");
+      const deps = polling.createRealDeps(getClient);
+      const sent = await polling.pollPendingReviews(deps, state);
+      for (const s of sent) {
+        process.stderr.write(`[exed] Review poll: sent intercom to ${s}\n`);
+      }
+    } catch (err) {
+      process.stderr.write(`[exed] Review poll error: ${err instanceof Error ? err.message : String(err)}\n`);
+    }
+  };
+
+  const timer = setInterval(() => void tick(), REVIEW_POLL_INTERVAL_MS);
+  timer.unref();
+  process.stderr.write(`[exed] Review polling started (every ${REVIEW_POLL_INTERVAL_MS / 60000}m)\n`);
+}
+
+// ---------------------------------------------------------------------------
 // Signal handlers
 // ---------------------------------------------------------------------------
 
@@ -325,6 +370,7 @@ process.on("SIGTERM", () => void shutdown());
 try {
   await loadModel();
   startServer();
+  startReviewPolling();
 } catch (err) {
   process.stderr.write(`[exed] FATAL: ${err instanceof Error ? err.message : String(err)}\n`);
   try { unlinkSync(SOCKET_PATH); } catch { /* ignore */ }
