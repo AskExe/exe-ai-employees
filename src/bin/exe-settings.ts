@@ -111,9 +111,8 @@ async function main(): Promise<void> {
         console.log(`\n  Current sync: ${syncStatus(config)}`);
         console.log("\n  Configure cloud sync:");
         console.log("    a. Exe Cloud — paste your API key (exe_sk_...)");
-        console.log("    b. Self-hosted Turso — paste your Turso URL and token");
-        console.log("    c. Disconnect — switch to local-only");
-        console.log("    d. Cancel");
+        console.log("    b. Disconnect — switch to local-only");
+        console.log("    c. Cancel");
         rl.question("\n  > ", async (syncChoice) => {
           const sc = syncChoice.trim().toLowerCase();
           if (sc === "a") {
@@ -145,20 +144,6 @@ async function main(): Promise<void> {
               });
             });
           } else if (sc === "b") {
-            rl.question("  Turso URL: ", async (url) => {
-              const u = url.trim();
-              if (!u) { console.log("  Cancelled."); prompt(); return; }
-              rl.question("  Auth token: ", async (token) => {
-                const t = token.trim();
-                if (!t) { console.log("  Cancelled."); prompt(); return; }
-                config.turso = { url: u, authToken: t };
-                delete config.cloud;
-                await saveConfig(config);
-                console.log("  ✓ Turso sync configured.");
-                prompt();
-              });
-            });
-          } else if (sc === "c") {
             delete config.cloud;
             delete config.turso;
             await saveConfig(config);
