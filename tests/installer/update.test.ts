@@ -50,7 +50,7 @@ describe("update version check", () => {
 
       expect(version).toBe("0.2.0");
       expect(mockExecSync).toHaveBeenCalledWith(
-        "npm view exe-mem version",
+        "npm view exe-ai-employees version",
         expect.objectContaining({
           encoding: "utf-8",
           timeout: 15000,

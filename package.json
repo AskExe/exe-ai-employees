@@ -1,6 +1,6 @@
 {
   "name": "exe-ai-employees",
-  "version": "1.5.9",
+  "version": "1.5.10",
   "description": "AI employees for Claude Code. Persistent memory, semantic search, and agent identity via MCP.",
   "license": "MIT",
   "type": "module",

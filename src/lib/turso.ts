@@ -209,6 +209,36 @@ export async function ensureSchema(): Promise<void> {
     // Column already exists — safe to ignore
   }
 
+  // Migration: add blocked_by column to tasks (upgrade compat with exe-os)
+  try {
+    await client.execute({
+      sql: `ALTER TABLE tasks ADD COLUMN blocked_by TEXT`,
+      args: [],
+    });
+  } catch {
+    // Column already exists — safe to ignore
+  }
+
+  // Migration: add parent_task_id column for subtask hierarchy
+  try {
+    await client.execute({
+      sql: `ALTER TABLE tasks ADD COLUMN parent_task_id TEXT`,
+      args: [],
+    });
+  } catch {
+    // Column already exists — safe to ignore
+  }
+
+  // Migration: add reviewer column to tasks (custom review assignment)
+  try {
+    await client.execute({
+      sql: `ALTER TABLE tasks ADD COLUMN reviewer TEXT`,
+      args: [],
+    });
+  } catch {
+    // Column already exists — safe to ignore
+  }
+
   // Reminders table — simple text reminders shown in boot brief
   await client.executeMultiple(`
     CREATE TABLE IF NOT EXISTS reminders (

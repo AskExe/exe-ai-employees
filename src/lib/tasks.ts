@@ -88,6 +88,53 @@ export async function listTasks(opts?: {
   return result.rows.map((row) => rowToTask(row as Record<string, unknown>));
 }
 
+/**
+ * Resolve a task by UUID, slug (filename without .md), or title substring.
+ * Throws if not found or ambiguous.
+ */
+export async function resolveTask(identifier: string): Promise<Task> {
+  const client = getClient();
+
+  // Try exact UUID match first
+  const byId = await client.execute({
+    sql: "SELECT * FROM tasks WHERE id = ?",
+    args: [identifier],
+  });
+  if (byId.rows.length === 1) {
+    return rowToTask(byId.rows[0] as Record<string, unknown>);
+  }
+
+  // Try slug match on task_file (e.g. "fix-auth-bug" matches "exe/yoshi/fix-auth-bug.md")
+  const bySlug = await client.execute({
+    sql: "SELECT * FROM tasks WHERE task_file LIKE ?",
+    args: [`%${identifier}%`],
+  });
+  if (bySlug.rows.length === 1) {
+    return rowToTask(bySlug.rows[0] as Record<string, unknown>);
+  }
+  if (bySlug.rows.length > 1) {
+    throw new Error(
+      `Multiple tasks match slug "${identifier}". Use a more specific identifier or the full UUID.`,
+    );
+  }
+
+  // Try title substring match
+  const byTitle = await client.execute({
+    sql: "SELECT * FROM tasks WHERE title LIKE ?",
+    args: [`%${identifier}%`],
+  });
+  if (byTitle.rows.length === 1) {
+    return rowToTask(byTitle.rows[0] as Record<string, unknown>);
+  }
+  if (byTitle.rows.length > 1) {
+    throw new Error(
+      `Multiple tasks match "${identifier}". Use a more specific identifier or the full UUID.`,
+    );
+  }
+
+  throw new Error(`Task not found: "${identifier}"`);
+}
+
 export async function updateTask(id: string, status: Task["status"]): Promise<boolean> {
   const client = getClient();
   const now = new Date().toISOString();

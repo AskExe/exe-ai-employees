@@ -45,7 +45,7 @@ export function registerGetSessionContext(server: McpServer): void {
       const result = await client.execute({
         sql: `SELECT id, agent_id, agent_role, session_id, timestamp,
                      tool_name, project_name,
-                     has_error, raw_text, vector
+                     has_error, raw_text, vector, task_id
               FROM memories
               WHERE session_id = ?
               ORDER BY timestamp ASC`,
@@ -79,6 +79,7 @@ export function registerGetSessionContext(server: McpServer): void {
           : Array.isArray(row.vector)
             ? row.vector
             : Array.from(row.vector as unknown as Float32Array),
+        task_id: (row.task_id as string) ?? null,
       }));
 
       // Find index of memory closest to target_timestamp

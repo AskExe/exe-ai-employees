@@ -19,7 +19,9 @@ export function registerStoreBehavior(server: McpServer): void {
     {
       title: "Store Behavior",
       description:
-        "Store a behavioral pattern or correction for an employee. Persists across sessions and projects.",
+        "Store a behavioral pattern, correction, or reusable procedure for an employee. " +
+        "Use for corrections ('don't do X'), preferences ('always use Y'), AND procedures " +
+        "('here is how to do Z step by step'). Persists across sessions and projects.",
       inputSchema: {
         content: z.string().max(500).describe("The behavioral instruction — one clear sentence"),
         domain: z.string().optional().describe("Category: workflow, code-style, tool-use, communication, architecture, testing"),

@@ -184,7 +184,7 @@ async function ftsQuery(
 ): Promise<MemoryRecord[]> {
   let sql = `SELECT m.id, m.agent_id, m.agent_role, m.session_id, m.timestamp,
                     m.tool_name, m.project_name,
-                    m.has_error, m.raw_text, m.vector
+                    m.has_error, m.raw_text, m.vector, m.task_id
              FROM memories m
              JOIN memories_fts fts ON m.rowid = fts.rowid
              WHERE memories_fts MATCH ?
@@ -231,6 +231,7 @@ async function ftsQuery(
       : Array.isArray(row.vector)
         ? row.vector
         : Array.from(row.vector as unknown as Float32Array),
+    task_id: (row.task_id as string) ?? null,
   }));
 }
 
@@ -246,7 +247,7 @@ async function recentRecords(
 
   let sql = `SELECT id, agent_id, agent_role, session_id, timestamp,
                     tool_name, project_name,
-                    has_error, raw_text, vector
+                    has_error, raw_text, vector, task_id
              FROM memories
              WHERE agent_id = ?`;
   const args: (string | number)[] = [agentId];
@@ -291,5 +292,6 @@ async function recentRecords(
       : Array.isArray(row.vector)
         ? row.vector
         : Array.from(row.vector as unknown as Float32Array),
+    task_id: (row.task_id as string) ?? null,
   }));
 }

@@ -19,7 +19,10 @@ export function registerListTasks(server: McpServer): void {
       description: "Query tasks by assignee, status, or project. Defaults to current project. Pass project_name='all' for all projects.",
       inputSchema: {
         assigned_to: z.string().optional().describe("Filter by agent name"),
-        status: z.enum(["open", "in_progress", "done"]).optional().describe("Filter by status"),
+        status: z
+          .enum(["open", "in_progress", "done", "blocked", "cancelled"])
+          .optional()
+          .describe("Filter by status"),
         project_name: z.string().optional().describe("Project name. Defaults to current project. Pass 'all' for all projects."),
       },
     },

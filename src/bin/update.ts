@@ -30,12 +30,12 @@ export function getLocalVersion(packageRoot: string): string {
 }
 
 /**
- * Query the npm registry for the latest published version of exe-mem.
+ * Query the npm registry for the latest published version of exe-ai-employees.
  * Returns null if the registry is unreachable or the package is not published.
  */
 export function getRemoteVersion(): string | null {
   try {
-    const output = execSync("npm view exe-mem version", {
+    const output = execSync("npm view exe-ai-employees version", {
       encoding: "utf-8",
       timeout: 15000,
       stdio: ["pipe", "pipe", "pipe"],
@@ -82,7 +82,8 @@ if (isMainModule(import.meta.url)) {
   }
 
   if (!result.updateAvailable) {
-    console.log(`exe-mem is up to date (v${result.localVersion})`);
+    console.log(`exe-ai-employees is up to date (v${result.localVersion})`);
+
     process.exit(0);
   }
 
@@ -101,11 +102,11 @@ if (isMainModule(import.meta.url)) {
   if (answer.toLowerCase() === "y") {
     console.log("Updating...");
     try {
-      execSync("npx exe-mem --global", { stdio: "inherit" });
+      execSync("npx exe-ai-employees --global", { stdio: "inherit" });
       console.log("Update complete!");
     } catch {
       console.error(
-        "Update failed. Try running manually: npx exe-mem --global",
+        "Update failed. Try running manually: npx exe-ai-employees --global",
       );
       process.exit(1);
     }
